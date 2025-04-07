@@ -1,80 +1,42 @@
 // app/interview/page.tsx
 import Link from 'next/link';
-// import { createClient } from '@supabase/supabase-js';
-// import { useEffect, useState } from 'react';
 
 export const metadata = {
   title: 'Interview List | Mockingbird',
   description: 'Manage your AI-powered interviews with Mockingbird',
 };
 
+// Interface matching your database schema
 interface Interview {
-  id: string;
+  id: number;
   title: string;
-  department: string;
-  status: 'active' | 'completed' | 'scheduled' | 'draft';
-  createdAt: string;
-  candidateCount: number;
-  maxCandidates: number;
+  description: string | null;
+  domain: string; // From the domains enum
+  seniority: string; // Junior, Mid-Level, Senior, Lead, or Executive
+  duration: string | null;
+  key_skills: string | null; // Comma-separated list
+  created_at: string;
 }
 
-export default function InterviewListPage() {
-  // Create a single supabase client for your app
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-// const supabase = createClient(supabaseUrl, supabaseKey);
-  
-  
-    // Mock data - this would typically come from an API or database
-  const interviews: Interview[] = [
-    {
-      id: 'int-001',
-      title: 'Software Engineer (Frontend)',
-      department: 'Engineering',
-      status: 'active',
-      createdAt: '2025-03-15',
-      candidateCount: 8,
-      maxCandidates: 15
-    },
-    {
-      id: 'int-002',
-      title: 'Product Manager',
-      department: 'Product',
-      status: 'completed',
-      createdAt: '2025-03-10',
-      candidateCount: 12,
-      maxCandidates: 12
-    },
-    {
-      id: 'int-003',
-      title: 'UX Designer',
-      department: 'Design',
-      status: 'scheduled',
-      createdAt: '2025-03-20',
-      candidateCount: 0,
-      maxCandidates: 10
-    },
-    {
-      id: 'int-004',
-      title: 'Data Scientist',
-      department: 'Data',
-      status: 'draft',
-      createdAt: '2025-03-25',
-      candidateCount: 0,
-      maxCandidates: 8
-    }
-  ];
+// This function would import interviews from your data source
+import { getInterviews } from '../../index'; // Adjust the import path as needed
 
-  const getStatusColor = (status: Interview['status']) => {
-    switch (status) {
-      case 'active':
+export default async function InterviewListPage() {
+  // Fetch interviews from your API or database
+  const interviews = await getInterviews();
+  
+  const getStatusColor = (seniority: string) => {
+    switch (seniority) {
+      case 'Senior':
         return 'bg-green-100 text-green-800';
-      case 'completed':
+      case 'Mid-Level':
         return 'bg-blue-100 text-blue-800';
-      case 'scheduled':
+      case 'Junior':
         return 'bg-yellow-100 text-yellow-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
+      case 'Lead':
+        return 'bg-purple-100 text-purple-800';
+      case 'Executive':
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -121,22 +83,33 @@ export default function InterviewListPage() {
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 defaultValue="all"
               >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="draft">Draft</option>
+                <option value="all">All Seniority Levels</option>
+                <option value="Junior">Junior</option>
+                <option value="Mid-Level">Mid-Level</option>
+                <option value="Senior">Senior</option>
+                <option value="Lead">Lead</option>
+                <option value="Executive">Executive</option>
               </select>
               
               <select 
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 defaultValue="all"
               >
-                <option value="all">All Departments</option>
-                <option value="engineering">Engineering</option>
-                <option value="product">Product</option>
-                <option value="design">Design</option>
-                <option value="data">Data</option>
+                <option value="all">All Domains</option>
+                <option value="Web Development">Web Development</option>
+                <option value="Frontend">Frontend</option>
+                <option value="Backend">Backend</option>
+                <option value="Full Stack">Full Stack</option>
+                <option value="Mobile">Mobile</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Cloud">Cloud</option>
+                <option value="Security">Security</option>
+                <option value="QA">QA</option>
+                <option value="AI/ML">AI/ML</option>
+                <option value="Blockchain">Blockchain</option>
+                <option value="UI/UX">UI/UX</option>
               </select>
             </div>
             
@@ -164,16 +137,16 @@ export default function InterviewListPage() {
                   Interview
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
+                  Domain
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Seniority
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Candidates
+                  Key Skills
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -185,35 +158,51 @@ export default function InterviewListPage() {
                 <tr key={interview.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{interview.title}</div>
-                    <div className="text-sm text-gray-500">{interview.id}</div>
+                    <div className="text-sm text-gray-500">ID: {interview.id}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{interview.department}</div>
+                    <div className="text-sm text-gray-900">{interview.domain}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{new Date(interview.createdAt).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-500">{new Date(interview.created_at).toLocaleDateString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(interview.status)}`}>
-                      {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(interview.seniority)}`}>
+                      {interview.seniority}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {interview.candidateCount} / {interview.maxCandidates}
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-500 flex flex-wrap gap-1">
+                      {interview.key_skills?.split(',').map((skill, index) => (
+                        <span key={index} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                          {skill.trim()}
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-3">
-                      <Link href={`/interview/${interview.id}`} className="text-blue-600 hover:text-blue-900">
-                        View
+                    <div className="flex flex-col space-y-2">
+                      <Link 
+                        href="/interview/session/1" 
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium inline-flex items-center justify-center"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Practice Now
                       </Link>
-                      <Link href={`/interview/${interview.id}/edit`} className="text-indigo-600 hover:text-indigo-900">
-                        Edit
-                      </Link>
-                      {interview.status !== 'completed' && (
+                      <div className="flex space-x-3">
+                        <Link href={`/interview/${interview.id}`} className="text-blue-600 hover:text-blue-900">
+                          View
+                        </Link>
+                        <Link href={`/interview/${interview.id}/edit`} className="text-indigo-600 hover:text-indigo-900">
+                          Edit
+                        </Link>
                         <button className="text-red-600 hover:text-red-900">
                           Delete
                         </button>
-                      )}
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -234,8 +223,8 @@ export default function InterviewListPage() {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to <span className="font-medium">4</span> of{' '}
-                  <span className="font-medium">4</span> results
+                  Showing <span className="font-medium">1</span> to <span className="font-medium">{interviews.length}</span> of{' '}
+                  <span className="font-medium">{interviews.length}</span> results
                 </p>
               </div>
               <div>

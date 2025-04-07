@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 
 // Enum for domains
 export const domains = [
+  'Web Development',
   'Frontend', 
   'Backend', 
   'Full Stack', 
@@ -20,7 +21,7 @@ export const domains = [
 
 type Domain = typeof domains[number];
 
-export const interviews = pgTable('interviews', {
+export const interviewTable = pgTable('interviews', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
@@ -32,6 +33,7 @@ export const interviews = pgTable('interviews', {
     length: 20, 
     enum: ['Junior', 'Mid-Level', 'Senior', 'Lead', 'Executive'] 
   }).notNull(),
+  key_skills: text('key_skills'),
   duration: varchar('duration', { length: 50 }), // e.g., '30 mins', '1 hour'
   created_at: timestamp('created_at')
     .defaultNow()
@@ -39,13 +41,13 @@ export const interviews = pgTable('interviews', {
 });
 
 // Optional: If you want to add relations or do more complex queries
-export const interviewsRelations = relations(interviews, ({ }) => ({
+export const interviewsRelations = relations(interviewTable, ({ }) => ({
   // You can add relations to other tables here in the future
 }));
 
 // Type inference helper
-export type Interview = typeof interviews.$inferSelect;
-export type NewInterview = typeof interviews.$inferInsert;
+export type Interview = typeof interviewTable.$inferSelect;
+export type NewInterview = typeof interviewTable.$inferInsert;
 
 // export const users = pgTable('users', {
 //   id: serial('id').primaryKey(),
