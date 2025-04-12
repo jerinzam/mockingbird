@@ -3,11 +3,6 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Vapi from '@vapi-ai/web';
-
 export const vapiAssistantConfig = {
   name: 'Interviewer',
   voice: {

@@ -38,9 +38,9 @@ export default function AboutPage() {
           <div className="bg-white shadow rounded-lg p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Our Story</h2>
             <p className="text-gray-600 mb-4">
-              Mockingbird was founded in 2024 with a simple mission: make interview preparation accessible to everyone. 
+              {`Mockingbird was founded in 2024 with a simple mission: make interview preparation accessible to everyone. 
               We saw that many candidates struggle with interviews not because they lack skills or qualifications, 
-              but because they don't have enough practice or feedback.
+              but because they don't have enough practice or feedback.`}
             </p>
             <p className="text-gray-600">
               Our AI-powered platform simulates realistic interview experiences, providing candidates with the opportunity 
@@ -137,7 +137,7 @@ export default function AboutPage() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Empowerment</h3>
                 <p className="text-gray-600">
-                  We're committed to building candidates' confidence and helping them showcase their best selves.
+                  {`We're committed to building candidates' confidence and helping them showcase their best selves.`}
                 </p>
               </div>
             </div>
