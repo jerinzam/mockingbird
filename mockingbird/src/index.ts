@@ -2,8 +2,16 @@ import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js'
 config({ path: ".env.local" });
 import { interviewTable } from './db/schema';
+// import postgres from 'postgres';
 
-const db = drizzle(process.env.DATABASE_URL!);
+// // Only create the connection on the server side
+// const connectionString = process.env.DATABASE_URL!;
+
+// // Create a singleton database connection
+// export const client = postgres(connectionString, { prepare: false });
+// export const db = drizzle(client);
+export const db = drizzle(process.env.DATABASE_URL!);
+
 async function main() {
    
 // const interviewData: typeof interviewTable.$inferInsert[] = [
