@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enum for domains
@@ -49,8 +49,19 @@ export const interviewsRelations = relations(interviewTable, ({ }) => ({
 export type Interview = typeof interviewTable.$inferSelect;
 export type NewInterview = typeof interviewTable.$inferInsert;
 
-// export const users = pgTable('users', {
-//   id: serial('id').primaryKey(),
-//   fullName: text('full_name'),
-//   phone: varchar('phone', { length: 256 }),
-// });
+// Define the interviewSession table
+export const interviewSessionTable = pgTable('interview_session', {
+  id: serial('id').primaryKey(),
+  interview_role_id: integer('interview_role_id')
+    .notNull()
+    .references(() => interviewTable.id), // Foreign key reference to interviews table
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  call_transcript: text('call_transcript'), // Store the transcript as JSON or text
+  call_ended_reason: text('call_ended_reason'), // e.g., "completed", "terminated", "error"
+  call_started_time: timestamp('call_started_time'),
+  call_ended_time: timestamp('call_ended_time')
+});
+
+// Define the types for type-safe operations
+export type InterviewSession = typeof interviewSessionTable.$inferSelect;
+export type NewInterviewSession = typeof interviewSessionTable.$inferInsert;

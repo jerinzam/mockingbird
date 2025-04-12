@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
-import { vapiAssistantConfig, VapiAssistantConfig } from '@/lib/vapi-assistant-config';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Interview {
   id: number;
@@ -35,6 +35,10 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
   const [audioLevels, setAudioLevels] = useState<number[]>(Array(20).fill(0));
   const vapiInstanceRef = useRef<Vapi | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const isNavigatingRef = useRef(false);
+
+  // Create a stable sessionId that will be used consistently
+  const interviewSessionId = useRef(uuidv4());
 
   // Fetch interview data
   useEffect(() => {
@@ -92,16 +96,19 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
       vapiInstanceRef.current.on('speech-start', () => setIsSpeaking(true));
       vapiInstanceRef.current.on('speech-end', () => setIsSpeaking(false));
 
-      // Add user speech detection if available
-      // vapiInstanceRef.current.on('userSpeechStart', () => setIsListening(true));
-      // vapiInstanceRef.current.on('userSpeechEnd', () => setIsListening(false));
-
       // Handle call end
       vapiInstanceRef.current.on('call-end', () => {
+        if (isNavigatingRef.current) return;
+        
         setIsInterviewActive(false);
-
-        // router.push(`/interview/review/${params.id}`);
-        router.push(`/interview/review/`);
+        
+        // Use setTimeout to ensure state updates and other cleanup can occur
+        setTimeout(() => {
+          if (!isNavigatingRef.current) {
+            isNavigatingRef.current = true;
+            router.push(`/interview/review/${interviewSessionId.current}`);
+          }
+        }, 100);
       });
 
     } catch (error) {
@@ -211,6 +218,9 @@ Guidelines for this interview:
         compliancePlan: {
           hipaaEnabled: false,
           pciEnabled: false
+        },
+        metadata: {
+          "sessionId": interviewSessionId.current
         }
       });
     } catch (error) {
@@ -222,15 +232,26 @@ Guidelines for this interview:
 
   // End the interview manually
   const handleEndInterview = async () => {
-    if (vapiInstanceRef.current) {
-      try {
+    if (isNavigatingRef.current) return;
+
+    try {
+      // Prevent multiple navigation attempts
+      isNavigatingRef.current = true;
+
+      // Stop the Vapi call if it exists
+      if (vapiInstanceRef.current) {
         await vapiInstanceRef.current.stop();
-        setIsInterviewActive(false);
-        // router.push(`/interview/review/${params.id}`);
-        router.push(`/interview/review`);
-      } catch (error) {
-        console.error('Error stopping interview:', error);
       }
+
+      // Store session data in localStorage
+      localStorage.setItem('interviewSessionId', interviewSessionId.current);
+
+      // Navigate to review page
+      router.push(`/interview/review/${interviewSessionId.current}`);
+    } catch (error) {
+      console.error('Error ending interview:', error);
+      // Fallback navigation
+      router.push(`/interview/review/${interviewSessionId.current}`);
     }
   };
 
@@ -326,7 +347,7 @@ Guidelines for this interview:
                       </li>
                       <li className="flex items-start">
                         <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                         </svg>
                         Test your microphone before starting
                       </li>
