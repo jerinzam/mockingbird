@@ -29,8 +29,10 @@ interface VapiTranscriptMessage {
   transcript: string;
   role: 'user' | 'assistant';
 }
-
-export default function InterviewSessionPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+export default function InterviewSessionPage({ params }: PageProps) {
   const router = useRouter();
   const [interview, setInterview] = useState<Interview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,9 +53,10 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
   // Fetch interview details
   useEffect(() => {
     const fetchInterview = async () => {
+      const { id } = await params;
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/interview/${params.id}`);
+        const response = await fetch(`/api/interview/${id}`);
         if (!response.ok) throw new Error('Failed to fetch interview');
         const data = await response.json();
         setInterview(data);
@@ -65,18 +68,19 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
     };
 
     fetchInterview();
-  }, [params.id]);
+  }, [params]);
 
 
   // Fetch interview data
   useEffect(() => {
     const fetchInterview = async () => {
+      const { id } = await params;
       try {
         setIsLoading(true);
         // In a real app, fetch the interview from the API based on the ID
         // For now, using mock data
         const mockInterview: Interview = {
-          id: parseInt(params.id),
+          id: parseInt(id),
           title: 'Frontend Developer Interview',
           description: 'Comprehensive assessment of React skills, JavaScript proficiency, and frontend fundamentals.',
           domain: 'Frontend',
@@ -94,7 +98,7 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
     };
 
     fetchInterview();
-  }, [params.id]);
+  }, [params]);
 
   // Initialize VAPI
   useEffect(() => {
@@ -149,7 +153,7 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
         vapiInstanceRef.current = null;
       }
     };
-  }, [interview, params.id, router]);
+  }, [interview, params, router]);
 
   // Timer for interview duration
   useEffect(() => {
