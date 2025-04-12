@@ -19,7 +19,7 @@ export const domains = [
   'UI/UX'
 ] as const;
 
-type Domain = typeof domains[number];
+// type Domain = typeof domains[number];
 
 export const interviewTable = pgTable('interviews', {
   id: serial('id').primaryKey(),

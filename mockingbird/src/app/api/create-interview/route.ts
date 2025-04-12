@@ -1,12 +1,8 @@
 // pages/api/create-interview.ts
-import type { NextApiRequest, NextApiResponse  } from 'next';
+
 import { db } from '@/index';
 import { interviewTable } from '@/db/schema';
-
-// // src/app/api/create-interview/route.ts
 import { NextResponse } from 'next/server';
-// import { db } from '@/db'; // Your drizzle db config
-// import { interviewTable } from '@/db/schema';
 
 export async function POST(req: Request) {
     try {

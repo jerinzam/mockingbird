@@ -7,16 +7,16 @@ export const metadata = {
 };
 
 // Interface matching your database schema
-interface Interview {
-  id: number;
-  title: string;
-  description: string | null;
-  domain: string; // From the domains enum
-  seniority: string; // Junior, Mid-Level, Senior, Lead, or Executive
-  duration: string | null;
-  key_skills: string | null; // Comma-separated list
-  created_at: string;
-}
+// interface Interview {
+//   id: number;
+//   title: string;
+//   description: string | null;
+//   domain: string; // From the domains enum
+//   seniority: string; // Junior, Mid-Level, Senior, Lead, or Executive
+//   duration: string | null;
+//   key_skills: string | null; // Comma-separated list
+//   created_at: string;
+// }
 
 // This function would import interviews from your data source
 import { getInterviews } from '../../index'; // Adjust the import path as needed
