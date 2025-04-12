@@ -1,6 +1,6 @@
 // pages/api/create-interview.ts
 import type { NextApiRequest, NextApiResponse  } from 'next';
-import { db } from '../../../index';
+import { db } from '@/index';
 import { interviewTable } from '@/db/schema';
 
 // // src/app/api/create-interview/route.ts

@@ -23,6 +23,8 @@ interface Message {
   timestamp: Date;
 }
 
+
+
 export default function InterviewSessionPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [interview, setInterview] = useState<Interview | null>(null);
@@ -39,6 +41,26 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
 
   // Create a stable sessionId that will be used consistently
   const interviewSessionId = useRef(uuidv4());
+
+  // Fetch interview details
+  useEffect(() => {
+    const fetchInterview = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/interview/${params.id}`);
+        if (!response.ok) throw new Error('Failed to fetch interview');
+        const data = await response.json();
+        setInterview(data);
+      } catch (error) {
+        console.error('Failed to fetch interview:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInterview();
+  }, [params.id]);
+
 
   // Fetch interview data
   useEffect(() => {
