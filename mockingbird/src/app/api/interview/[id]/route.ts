@@ -3,13 +3,14 @@ import { db } from '@/index';
 import { interviewTable } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Required for dynamic route handlers in app directory
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  _req: Request,
+  { params }: { params: Record<'id', string> }
 ) {
   try {
-    const id = parseInt(params.id);
-    if (isNaN(id)) {
+    const id = Number(params.id);
+    if (Number.isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
@@ -18,7 +19,7 @@ export async function GET(
       .from(interviewTable)
       .where(eq(interviewTable.id, id));
 
-    if (!result || result.length === 0) {
+    if (!result.length) {
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 });
     }
 
