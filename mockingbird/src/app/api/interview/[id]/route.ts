@@ -2,14 +2,16 @@ import { NextResponse } from 'next/server';
 import { db } from '@/index';
 import { interviewTable } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import type { NextRequest } from 'next/server';
 
-// Required for dynamic route handlers in app directory
+// Correct type signature for dynamic route handlers in App Router
 export async function GET(
-  _req: Request,
-  { params }: { params: Record<'id', string> }
+  req: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
 ) {
   try {
-    const id = Number(params.id);
+    const {id} = await params;
+    const numericid = await Number(id);
     if (Number.isNaN(id)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
@@ -17,7 +19,7 @@ export async function GET(
     const result = await db
       .select()
       .from(interviewTable)
-      .where(eq(interviewTable.id, id));
+      .where(eq(interviewTable.id, numericid));
 
     if (!result.length) {
       return NextResponse.json({ error: 'Interview not found' }, { status: 404 });
