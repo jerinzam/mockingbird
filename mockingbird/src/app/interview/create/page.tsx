@@ -127,36 +127,36 @@ export default function CreateInterviewPage() {
   };
 
   // Validate form
-  const validateForm = (): boolean => {
-    const newErrors: InterviewFormErrors = {};
+  // const validateForm = (): boolean => {
+  //   const newErrors: InterviewFormErrors = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = 'Interview title is required';
-    }
+  //   if (!formData.title.trim()) {
+  //     newErrors.title = 'Interview title is required';
+  //   }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
+  //   if (!formData.description.trim()) {
+  //     newErrors.description = 'Description is required';
+  //   }
 
-    if (!formData.domain) {
-      newErrors.domain = 'Domain is required';
-    }
+  //   if (!formData.domain) {
+  //     newErrors.domain = 'Domain is required';
+  //   }
 
-    if (!formData.seniority) {
-      newErrors.seniority = 'Seniority level is required';
-    }
+  //   if (!formData.seniority) {
+  //     newErrors.seniority = 'Seniority level is required';
+  //   }
 
-    if (!formData.duration || formData.duration.trim() === '') {
-      newErrors.duration = 'Duration is required';
-    }
+  //   if (!formData.duration || formData.duration.trim() === '') {
+  //     newErrors.duration = 'Duration is required';
+  //   }
 
-    if (formData.key_skills.length === 0) {
-      newErrors.key_skills = 'At least one skill is required';
-    }
+  //   if (formData.key_skills.length === 0) {
+  //     newErrors.key_skills = 'At least one skill is required';
+  //   }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {

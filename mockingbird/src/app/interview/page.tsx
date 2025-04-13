@@ -7,16 +7,16 @@ export const metadata = {
 };
 
 // Interface matching your database schema
-interface Interview {
-  id: number;
-  title: string;
-  description: string | null;
-  domain: string; // From the domains enum
-  seniority: string; // Junior, Mid-Level, Senior, Lead, or Executive
-  duration: string | null;
-  key_skills: string | null; // Comma-separated list
-  created_at: string;
-}
+// interface Interview {
+//   id: number;
+//   title: string;
+//   description: string | null;
+//   domain: string; // From the domains enum
+//   seniority: string; // Junior, Mid-Level, Senior, Lead, or Executive
+//   duration: string | null;
+//   key_skills: string | null; // Comma-separated list
+//   created_at: string;
+// }
 
 // This function would import interviews from your data source
 import { getInterviews } from '../../index'; // Adjust the import path as needed
@@ -183,7 +183,7 @@ export default async function InterviewListPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex flex-col space-y-2">
                       <Link 
-                        href="/interview/session/1" 
+                        href={`/interview/session/${interview.id}`}
                         className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium inline-flex items-center justify-center"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
