@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { MockingbirdHeader } from '../../../components/mockingBirdHeader';
 
 interface PerformanceMetric {
   value: number;
@@ -170,15 +171,15 @@ export default function InterviewReview() {
 
   if (loading && !analysis) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center w-full max-w-md px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="text-center w-full max-w-md px-4 bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6">
           <div className="mb-4">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
           </div>
-          <p className="text-gray-600 mb-2">Preparing your interview analysis...</p>
+          <p className="text-gray-600 text-xs mb-2">Preparing your interview analysis...</p>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out"
+              className="bg-black h-2.5 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -193,14 +194,18 @@ export default function InterviewReview() {
 
   if (error && !analysis) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono p-4">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-yellow-600 mb-4">No Analysis Available</h2>
-          <p className="text-gray-700 mb-6">We {`couldn't`} retrieve the interview analysis at this time.</p>
+          <p className="text-gray-700 text-xs mb-6">We {`couldn't`} retrieve the interview analysis at this time.</p>
           <div className="flex justify-center space-x-4">
             <Link
               href="/interview"
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+              className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md 
+                shadow-[3px_3px_0_#000] 
+                hover:translate-x-[2px] hover:translate-y-[2px] 
+                hover:shadow-[2px_2px_0_#000] 
+                transition-all text-xs"
             >
               Back to Interviews
             </Link>
@@ -235,21 +240,14 @@ export default function InterviewReview() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">Mockingbird</h1>
-          <Link href="/interview" className="text-gray-600 hover:text-blue-600">
-            Back to Interviews
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f4f4f4] text-[#222222] font-mono">
+      <MockingbirdHeader />
 
       <main className="max-w-4xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Interview Performance Review</h1>
-        <p className="text-gray-600 mb-6">Overview of your recent interview session</p>
+        <h1 className="text-3xl font-bold text-black mb-2">Interview Performance Review</h1>
+        <p className="text-gray-600 text-xs mb-6">Overview of your recent interview session</p>
 
-        <div className="bg-white shadow rounded-xl overflow-hidden mb-8">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-xl overflow-hidden mb-8">
           <div className="flex flex-col md:flex-row">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-8 md:w-1/3">
               <div className="flex flex-col items-center justify-center h-full">
@@ -261,8 +259,8 @@ export default function InterviewReview() {
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <p className="text-sm opacity-90">{analysis.assessment_label}</p>
-                  <p className="text-sm opacity-75 mt-1">{analysis.recommendation}</p>
+                  <p className="text-xs opacity-90">{analysis.assessment_label}</p>
+                  <p className="text-xs opacity-75 mt-1">{analysis.recommendation}</p>
                 </div>
               </div>
             </div>
@@ -278,7 +276,7 @@ export default function InterviewReview() {
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div className={`${getGaugeColor(metric.value)} h-2.5 rounded-full`} style={{ width: `${metric.value}%` }}></div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+                    <p className="text-xs opacity-30 mt-1">{metric.description}</p>
                   </div>
                 ))}
               </div>
@@ -286,7 +284,7 @@ export default function InterviewReview() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">AI Summary</h2>
           <p className="text-gray-700 whitespace-pre-line">{analysis.summary}</p>
         </div>
