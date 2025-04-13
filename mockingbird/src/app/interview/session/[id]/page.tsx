@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
 import { v4 as uuidv4 } from 'uuid';
+import { MockingbirdHeader } from '../../../components/mockingBirdHeader';
 
 interface Interview {
   id: number;
@@ -29,9 +30,11 @@ interface VapiTranscriptMessage {
   transcript: string;
   role: 'user' | 'assistant';
 }
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
 export default function InterviewSessionPage({ params }: PageProps) {
   const router = useRouter();
   const [interview, setInterview] = useState<Interview | null>(null);
@@ -69,7 +72,6 @@ export default function InterviewSessionPage({ params }: PageProps) {
 
     fetchInterview();
   }, [params]);
-
 
   // Fetch interview data
   useEffect(() => {
@@ -290,10 +292,10 @@ Guidelines for this interview:
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-          <p className="mt-3 text-gray-600">Loading interview data...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+          <p className="mt-3 text-gray-600 text-xs">Loading interview data...</p>
         </div>
       </div>
     );
@@ -302,100 +304,67 @@ Guidelines for this interview:
   // Interview not found
   if (!interview) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <h1 className="text-2xl font-bold text-red-600">Interview Not Found</h1>
-        <p className="mt-2 text-gray-600">{`The interview you're looking for doesn't exist or has been removed.`}</p>
-        <Link href="/interview" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-          Back to Interviews
-        </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Interview Not Found</h1>
+          <p className="text-gray-600 text-xs mb-4">{`The interview you're looking for doesn't exist or has been removed.`}</p>
+          <Link 
+            href="/interview" 
+            className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md 
+              shadow-[3px_3px_0_#000] 
+              hover:translate-x-[2px] hover:translate-y-[2px] 
+              hover:shadow-[2px_2px_0_#000] 
+              transition-all text-xs"
+          >
+            Back to Interviews
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f4f4f4] text-[#222222] font-mono">
       {/* Header */}
-      <header className="bg-white shadow sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">Mockingbird</h1>
-          <div className="flex items-center space-x-4">
-            {isInterviewActive && (
-              <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
-                <div className="h-3 w-3 rounded-full bg-blue-600 animate-pulse"></div>
-                <span className="text-blue-700 font-medium">{formatTime(elapsedTime)}</span>
-              </div>
-            )}
-            <Link href="/interview" className="text-gray-600 hover:text-blue-600">
-              Back to Interviews
-            </Link>
-          </div>
-        </div>
-      </header>
+      <MockingbirdHeader />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {!isInterviewActive ? (
           // Pre-interview view
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left side - Interview details */}
             <div className="w-full lg:w-3/5">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{interview.title}</h2>
+              <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden">
+                <div className="p-6 border-b-2 border-black">
+                  <h2 className="text-3xl font-bold tracking-tight mb-2">{interview.title}</h2>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-300">
                       {interview.domain}
                     </span>
-                    <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded border border-purple-300">
                       {interview.seniority}
                     </span>
-                    <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                    <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-300">
                       {interview.duration}
                     </span>
                   </div>
                 </div>
                 
                 <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-700 mb-4">{interview.description}</p>
+                  <h3 className="text-lg font-bold mb-2">Description</h3>
+                  <p className="text-xs mb-4">{interview.description}</p>
                   
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Key Skills</h3>
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  <h3 className="text-lg font-bold mb-2">Key Skills</h3>
+                  <div className="flex flex-wrap gap-1 mb-6">
                     {interview.key_skills?.split(',').map((skill, index) => (
-                      <span key={index} className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                      <span
+                        key={index}
+                        className="bg-gray-200 text-gray-700 text-[9px] px-1.5 py-0.5 rounded"
+                      >
                         {skill.trim()}
                       </span>
                     ))}
-                  </div>
-                  
-                  <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                    <h3 className="text-md font-medium text-blue-900 mb-2">Interview Tips</h3>
-                    <ul className="space-y-1 text-sm text-blue-800">
-                      <li className="flex items-start">
-                        <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                        </svg>
-                        {`Make sure you're in a quiet environment`}
-                      </li>
-                      <li className="flex items-start">
-                        <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                        </svg>
-                        Test your microphone before starting
-                      </li>
-                      <li className="flex items-start">
-                        <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                        </svg>
-                        Speak clearly and at a normal pace
-                      </li>
-                      <li className="flex items-start">
-                        <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                        </svg>
-                        Take a moment to think before answering
-                      </li>
-                    </ul>
                   </div>
                 </div>
               </div>
@@ -403,51 +372,23 @@ Guidelines for this interview:
             
             {/* Right side - Start button and preview */}
             <div className="w-full lg:w-2/5 space-y-6">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden">
                 <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Ready to Begin?</h3>
-                  <p className="text-gray-600 mb-6">
-                    This interview will last approximately {interview.duration}. 
-                    {`You'll`} be asked questions about {interview.domain} topics appropriate for a {interview.seniority} position.
+                  <h3 className="text-lg font-bold mb-4">Ready to Begin?</h3>
+                  <p className="text-xs mb-6">
+                    This interview will last approximately {interview.duration}.{`You'll`} be asked questions about {interview.domain} topics appropriate for a {interview.seniority} position.
                   </p>
                   
                   <button
                     onClick={handleStartInterview}
-                    className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="w-full py-3 px-4 bg-yellow-300 border-2 border-black 
+                      rounded-md shadow-[3px_3px_0_#000] 
+                      hover:translate-x-[2px] hover:translate-y-[2px] 
+                      hover:shadow-[2px_2px_0_#000] 
+                      transition-all text-xs"
                   >
                     Start Interview
                   </button>
-                </div>
-              </div>
-              
-              <div className="bg-white shadow rounded-lg overflow-hidden">
-                <div className="p-4 bg-gray-50 border-b border-gray-200">
-                  <h3 className="text-md font-medium text-gray-900">How It Works</h3>
-                </div>
-                <div className="p-6">
-                  <ol className="space-y-4">
-                    <li className="flex">
-                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold mr-3">1</span>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Start the interview</h4>
-                        <p className="text-sm text-gray-600">Click the button to begin your AI-powered interview session</p>
-                      </div>
-                    </li>
-                    <li className="flex">
-                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold mr-3">2</span>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Answer the questions</h4>
-                        <p className="text-sm text-gray-600">Respond naturally to questions asked by the AI interviewer</p>
-                      </div>
-                    </li>
-                    <li className="flex">
-                      <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold mr-3">3</span>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Review your performance</h4>
-                        <p className="text-sm text-gray-600">Get detailed feedback and scores after completing the interview</p>
-                      </div>
-                    </li>
-                  </ol>
                 </div>
               </div>
             </div>
@@ -455,11 +396,11 @@ Guidelines for this interview:
         ) : (
           // Active interview view
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left column - Avatar and visualization */}
+            {/* Left column - Interview details */}
             <div className="w-full lg:w-2/5">
-              <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden">
                 <div className="p-6 text-center">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">AI Interviewer</h2>
+                  <h2 className="text-xl font-bold mb-6">AI Interviewer</h2>
                   
                   {/* Avatar */}
                   <div className="relative inline-block mb-6">
@@ -517,7 +458,7 @@ Guidelines for this interview:
             
             {/* Right column - Transcript */}
             <div className="w-full lg:w-3/5">
-              <div className="bg-white shadow rounded-lg overflow-hidden h-[600px] flex flex-col">
+              <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden h-[600px] flex flex-col">
                 <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Interview Transcript</h2>
                   <div className="flex items-center text-sm text-gray-600">
@@ -575,7 +516,7 @@ Guidelines for this interview:
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
