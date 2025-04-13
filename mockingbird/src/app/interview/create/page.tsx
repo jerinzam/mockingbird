@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { MockingbirdHeader } from '../../components/mockingBirdHeader';
 
-
- const INTERVIEW_TEMPLATE = {
+const INTERVIEW_TEMPLATE = {
   title: 'Frontend Developer Technical Interview',
   description: 'Comprehensive assessment of frontend development skills, focusing on React, JavaScript, and modern web technologies.',
   domain: 'Frontend',
@@ -53,7 +53,6 @@ type InterviewFormErrors = {
 };
 
 // Define the form data type
-
 interface InterviewForm {
   title: string;
   description: string;
@@ -118,45 +117,13 @@ export default function CreateInterviewPage() {
     }
   };
 
-//   // Remove skill from the list
+  // Remove skill from the list
   const removeSkill = (skillToRemove: string) => {
     setFormData(prev => ({
       ...prev,
       key_skills: prev.key_skills.filter(skill => skill !== skillToRemove)
     }));
   };
-
-  // Validate form
-  // const validateForm = (): boolean => {
-  //   const newErrors: InterviewFormErrors = {};
-
-  //   if (!formData.title.trim()) {
-  //     newErrors.title = 'Interview title is required';
-  //   }
-
-  //   if (!formData.description.trim()) {
-  //     newErrors.description = 'Description is required';
-  //   }
-
-  //   if (!formData.domain) {
-  //     newErrors.domain = 'Domain is required';
-  //   }
-
-  //   if (!formData.seniority) {
-  //     newErrors.seniority = 'Seniority level is required';
-  //   }
-
-  //   if (!formData.duration || formData.duration.trim() === '') {
-  //     newErrors.duration = 'Duration is required';
-  //   }
-
-  //   if (formData.key_skills.length === 0) {
-  //     newErrors.key_skills = 'At least one skill is required';
-  //   }
-
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
 
   // Handle form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -188,205 +155,220 @@ export default function CreateInterviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f4f4f4] text-[#222222] font-mono">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">Mockingbird</h1>
-          <Link href="/interview" className="text-gray-600 hover:text-blue-600">
-            Back to Interviews
-          </Link>
-        </div>
-      </header>
+      <MockingbirdHeader />
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-10">
-        <div className="bg-white shadow rounded-xl overflow-hidden">
-          <div className="p-6 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Create New Interview</h2>
-              <p className="text-gray-600 mt-2">Set up a custom AI-powered interview</p>
-            </div>
-            <button 
-              onClick={loadTemplate}
-              className="text-blue-600 hover:underline text-sm"
-            >
-              Use Template
-            </button>
-          </div>
-
-          <form  onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Interview Title */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Interview Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="E.g., Senior React Developer Interview"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                  ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
-              />
-              {errors.title && (
-                <p className="text-red-500 text-xs mt-1">{errors.title}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                placeholder="Provide a brief overview of the interview's purpose and focus"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                  ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
-              ></textarea>
-              {errors.description && (
-                <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-              )}
-            </div>
-
-            {/* Domain and Seniority */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Domain */}
-              <div>
-                <label htmlFor="domain" className="block text-sm font-medium text-gray-700 mb-2">
-                  Domain
-                </label>
-                <select
-                  id="domain"
-                  name="domain"
-                  value={formData.domain}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                    ${errors.domain ? 'border-red-500' : 'border-gray-300'}`}
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Left Column - Form Fields */}
+          <div className="md:col-span-3">
+            <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] overflow-hidden">
+              <div className="p-6 bg-[#e0e0e0] border-b-2 border-black flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-black">Create New Interview</h2>
+                  <p className="text-gray-700 text-xs mt-2">Set up a custom AI-powered interview</p>
+                </div>
+                <button 
+                  onClick={loadTemplate}
+                  className="text-blue-600 hover:underline text-xs"
                 >
-                  <option value="">Select Domain</option>
-                  {DOMAINS.map(domain => (
-                    <option key={domain} value={domain}>{domain}</option>
-                  ))}
-                </select>
-                {errors.domain && (
-                  <p className="text-red-500 text-xs mt-1">{errors.domain}</p>
-                )}
-              </div>
-
-              {/* Seniority */}
-              <div>
-                <label htmlFor="seniority" className="block text-sm font-medium text-gray-700 mb-2">
-                  Seniority Level
-                </label>
-                <select
-                  id="seniority"
-                  name="seniority"
-                  value={formData.seniority}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                    ${errors.seniority ? 'border-red-500' : 'border-gray-300'}`}
-                >
-                  <option value="">Select Seniority</option>
-                  {SENIORITY_LEVELS.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-                {errors.seniority && (
-                  <p className="text-red-500 text-xs mt-1">{errors.seniority}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
-                Interview Duration
-              </label>
-              <input
-                type="text"
-                id="duration"
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                placeholder="E.g., 30 mins, 1 hour"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                  ${errors.duration ? 'border-red-500' : 'border-gray-300'}`}
-              />
-              {errors.duration && (
-                <p className="text-red-500 text-xs mt-1">{errors.duration}</p>
-              )}
-            </div>
-
-            {/* Key Skills */}
-            <div>
-              <label htmlFor="skill-input" className="block text-sm font-medium text-gray-700 mb-2">
-                Key Skills
-              </label>
-              <div className="flex">
-                <input
-                  type="text"
-                  id="skill-input"
-                  value={currentSkill}
-                  onChange={(e) => setCurrentSkill(e.target.value)}
-                  placeholder="Add a skill (e.g., React, TypeScript)"
-                  className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addSkill();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={addSkill}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Add
+                  Use Template
                 </button>
               </div>
 
-              {/* Skills List */}
-              <div className="mt-2 flex flex-wrap gap-2">
-                {formData.key_skills.map(skill => (
-                  <span 
-                    key={skill} 
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                  >
-                    {skill}<button
-                      type="button"
-                      onClick={() => removeSkill(skill)}
-                      className="ml-1.5 text-blue-500 hover:text-blue-700"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              {errors.key_skills && (
-                <p className="text-red-500 text-xs mt-1">{errors.key_skills}</p>
-              )}
-            </div>
+              <form onSubmit={handleSubmit} className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Left Side - Form Fields (2 columns) */}
+                  <div className="space-y-6 md:col-span-2">
+                    {/* Interview Title */}
+                    <div>
+                      <label htmlFor="title" className="block text-xs font-medium text-gray-700 mb-2">
+                        Interview Title
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        placeholder="E.g., Senior React Developer Interview"
+                        className={`w-full px-3 py-2 border-2 border-black rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          ${errors.title ? 'border-red-500' : ''}`}
+                      />
+                      {errors.title && (
+                        <p className="text-red-500 text-xs mt-1">{errors.title}</p>
+                      )}
+                    </div>
 
-            {/* Submit Button */}
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Creating Interview...' : 'Create Interview'}
-              </button>
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Domain */}
+                      <div>
+                        <label htmlFor="domain" className="block text-xs font-medium text-gray-700 mb-2">
+                          Domain
+                        </label>
+                        <select
+                          id="domain"
+                          name="domain"
+                          value={formData.domain}
+                          onChange={handleChange}
+                          className={`w-full px-3 py-2 border-2 border-black rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                            ${errors.domain ? 'border-red-500' : ''}`}
+                        >
+                          <option value="">Select Domain</option>
+                          {DOMAINS.map(domain => (
+                            <option key={domain} value={domain}>{domain}</option>
+                          ))}
+                        </select>
+                        {errors.domain && (
+                          <p className="text-red-500 text-xs mt-1">{errors.domain}</p>
+                        )}
+                      </div>
+
+                      {/* Seniority */}
+                      <div>
+                        <label htmlFor="seniority" className="block text-xs font-medium text-gray-700 mb-2">
+                          Seniority Level
+                        </label>
+                        <select
+                          id="seniority"
+                          name="seniority"
+                          value={formData.seniority}
+                          onChange={handleChange}
+                          className={`w-full px-3 py-2 border-2 border-black rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                            ${errors.seniority ? 'border-red-500' : ''}`}
+                        >
+                          <option value="">Select Seniority</option>
+                          {SENIORITY_LEVELS.map(level => (
+                            <option key={level} value={level}>{level}</option>
+                          ))}
+                        </select>
+                        {errors.seniority && (
+                          <p className="text-red-500 text-xs mt-1">{errors.seniority}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Duration */}
+                    <div>
+                      <label htmlFor="duration" className="block text-xs font-medium text-gray-700 mb-2">
+                        Interview Duration
+                      </label>
+                      <input
+                        type="text"
+                        id="duration"
+                        name="duration"
+                        value={formData.duration}
+                        onChange={handleChange}
+                        placeholder="E.g., 30 mins, 1 hour"
+                        className={`w-full px-3 py-2 border-2 border-black rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          ${errors.duration ? 'border-red-500' : ''}`}
+                      />
+                      {errors.duration && (
+                        <p className="text-red-500 text-xs mt-1">{errors.duration}</p>
+                      )}
+                    </div>
+
+                    {/* Key Skills */}
+                    <div>
+                      <label htmlFor="skill-input" className="block text-xs font-medium text-gray-700 mb-2">
+                        Key Skills
+                      </label>
+                      <div className="flex">
+                        <input
+                          type="text"
+                          id="skill-input"
+                          value={currentSkill}
+                          onChange={(e) => setCurrentSkill(e.target.value)}
+                          placeholder="Add a skill (e.g., React, TypeScript)"
+                          className="flex-grow px-3 py-2 border-2 border-black rounded-l-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSkill();
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={addSkill}
+                          className="px-4 py-2 bg-yellow-300 border-2 border-black rounded-r-none hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          Add
+                        </button>
+                      </div>
+
+                      {/* Skills List */}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {formData.key_skills.map(skill => (
+                          <span 
+                            key={skill} 
+                            className="inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-medium bg-gray-200 text-gray-700"
+                          >
+                            {skill}<button
+                              type="button"
+                              onClick={() => removeSkill(skill)}
+                              className="ml-1.5 text-gray-500 hover:text-gray-700"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      {errors.key_skills && (
+                        <p className="text-red-500 text-xs mt-1">{errors.key_skills}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Side - Description (1 column) */}
+                  <div className="md:col-span-1">
+                    {/* Description */}
+                    <div>
+                      <label htmlFor="description" className="block text-xs font-medium text-gray-700 mb-2">
+                        Job Description
+                      </label>
+                      <textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows={17}
+                        placeholder="Provide a detailed job description including responsibilities, requirements, and qualifications"
+                        className={`w-full px-3 py-2 border-2 border-black rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 
+                          ${errors.description ? 'border-red-500' : ''}`}
+                      ></textarea>
+                      {errors.description && (
+                        <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-6 mt-6 border-t-2 border-gray-200">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3 px-4 bg-yellow-300 border-2 border-black 
+                      shadow-[3px_3px_0_#000] 
+                      hover:translate-x-[2px] hover:translate-y-[2px] 
+                      hover:shadow-[2px_2px_0_#000] 
+                      transition-transform text-xs 
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Creating Interview...' : 'Create Interview'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
+          </div>
+
+          {/* Right Column - Blank Column for Layout Balance */}
+          <div className="md:col-span-1">
+            {/* This column intentionally left empty for layout balance */}
+          </div>
         </div>
       </main>
     </div>
