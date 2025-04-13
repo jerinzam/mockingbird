@@ -12,11 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: 'Mockingbird | AI Interview Practice',
-  description: 'AI-powered mock interview platform'
+// export const metadata = {
+//   title: 'Mockingbird | AI Interview Practice',
+//   description: 'AI-powered mock interview platform'
 
-}
+// }
 
 export default function RootLayout({
   children,
