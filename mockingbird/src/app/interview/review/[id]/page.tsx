@@ -196,7 +196,7 @@ export default function InterviewReview() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
         <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-yellow-600 mb-4">No Analysis Available</h2>
-          <p className="text-gray-700 mb-6">We couldn't retrieve the interview analysis at this time.</p>
+          <p className="text-gray-700 mb-6">We {`couldn't`} retrieve the interview analysis at this time.</p>
           <div className="flex justify-center space-x-4">
             <Link
               href="/interview"

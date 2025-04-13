@@ -23,14 +23,24 @@ interface Message {
   timestamp: Date;
 }
 
-export default function InterviewSessionPage({ params }: { params: { id: string } }) {
+interface VapiTranscriptMessage {
+  type: 'transcript';
+  transcriptType: 'final' | 'partial';
+  transcript: string;
+  role: 'user' | 'assistant';
+}
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+export default function InterviewSessionPage({ params }: PageProps) {
   const router = useRouter();
   const [interview, setInterview] = useState<Interview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInterviewActive, setIsInterviewActive] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [transcript, setTranscript] = useState<Message[]>([]);
-  const [isListening, setIsListening] = useState(false);
+  // const [isListening, setIsListening] = useState(false);
+  const [isListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioLevels, setAudioLevels] = useState<number[]>(Array(20).fill(0));
   const vapiInstanceRef = useRef<Vapi | null>(null);
@@ -40,15 +50,37 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
   // Create a stable sessionId that will be used consistently
   const interviewSessionId = useRef(uuidv4());
 
+  // Fetch interview details
+  useEffect(() => {
+    const fetchInterview = async () => {
+      const { id } = await params;
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/interview/${id}`);
+        if (!response.ok) throw new Error('Failed to fetch interview');
+        const data = await response.json();
+        setInterview(data);
+      } catch (error) {
+        console.error('Failed to fetch interview:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInterview();
+  }, [params]);
+
+
   // Fetch interview data
   useEffect(() => {
     const fetchInterview = async () => {
+      const { id } = await params;
       try {
         setIsLoading(true);
         // In a real app, fetch the interview from the API based on the ID
         // For now, using mock data
         const mockInterview: Interview = {
-          id: parseInt(params.id),
+          id: parseInt(id),
           title: 'Frontend Developer Interview',
           description: 'Comprehensive assessment of React skills, JavaScript proficiency, and frontend fundamentals.',
           domain: 'Frontend',
@@ -66,7 +98,7 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
     };
 
     fetchInterview();
-  }, [params.id]);
+  }, [params]);
 
   // Initialize VAPI
   useEffect(() => {
@@ -76,7 +108,7 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
       vapiInstanceRef.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY || '');
 
       // Set up event listeners for VAPI
-      vapiInstanceRef.current.on('message', (message: any) => {
+      vapiInstanceRef.current.on('message', (message: VapiTranscriptMessage) => {
         if (message.type === 'transcript' && message.transcriptType === 'final') {
           setTranscript((prev) => [
             ...prev,
@@ -121,7 +153,7 @@ export default function InterviewSessionPage({ params }: { params: { id: string 
         vapiInstanceRef.current = null;
       }
     };
-  }, [interview, params.id, router]);
+  }, [interview, params, router]);
 
   // Timer for interview duration
   useEffect(() => {
@@ -272,7 +304,7 @@ Guidelines for this interview:
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <h1 className="text-2xl font-bold text-red-600">Interview Not Found</h1>
-        <p className="mt-2 text-gray-600">The interview you're looking for doesn't exist or has been removed.</p>
+        <p className="mt-2 text-gray-600">{`The interview you're looking for doesn't exist or has been removed.`}</p>
         <Link href="/interview" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
           Back to Interviews
         </Link>
@@ -343,7 +375,7 @@ Guidelines for this interview:
                         <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
                         </svg>
-                        Make sure you're in a quiet environment
+                        {`Make sure you're in a quiet environment`}
                       </li>
                       <li className="flex items-start">
                         <svg className="w-4 h-4 mr-1.5 mt-0.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -376,7 +408,7 @@ Guidelines for this interview:
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Ready to Begin?</h3>
                   <p className="text-gray-600 mb-6">
                     This interview will last approximately {interview.duration}. 
-                    You'll be asked questions about {interview.domain} topics appropriate for a {interview.seniority} position.
+                    {`You'll`} be asked questions about {interview.domain} topics appropriate for a {interview.seniority} position.
                   </p>
                   
                   <button
