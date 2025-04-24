@@ -49,6 +49,7 @@ export default function InterviewSessionPage({ params }: PageProps) {
   const vapiInstanceRef = useRef<Vapi | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
+  const [micReady, setMicReady] = useState(false);
 
   // Create a stable sessionId that will be used consistently
   const interviewSessionId = useRef(uuidv4());
@@ -129,7 +130,7 @@ export default function InterviewSessionPage({ params }: PageProps) {
 
       vapiInstanceRef.current.on('speech-start', () => setIsSpeaking(true));
       vapiInstanceRef.current.on('speech-end', () => setIsSpeaking(false));
-
+      vapiInstanceRef.current.on('call-start', () =>  setMicReady(true));
       // Handle call end
       vapiInstanceRef.current.on('call-end', () => {
         if (isNavigatingRef.current) return;
@@ -200,63 +201,80 @@ export default function InterviewSessionPage({ params }: PageProps) {
       setElapsedTime(0);
       
       // Prepare system prompt based on interview parameters
-      const systemPrompt = `You are an experienced technical interviewer conducting an interview for a ${interview.title} position.
+      // const systemPrompt = `You are an experienced technical interviewer conducting an interview for a ${interview.title} position.
       
-Domain: ${interview.domain}
-Seniority: ${interview.seniority}
-Duration: ${interview.duration || '30 minutes'}
-Skills to assess: ${interview.key_skills || 'frontend technologies'}
+      //             Domain: ${interview.domain}
+      //             Seniority: ${interview.seniority}
+      //             Duration: ${interview.duration || '30 minutes'}
+      //             Skills to assess: ${interview.key_skills || 'frontend technologies'}
 
-Your goal is to assess the candidate's technical knowledge and experience level.
+      //             Your goal is to assess the candidate's technical knowledge and experience level.
 
-Guidelines for this interview:
-1. Start with a friendly introduction and explain the interview format
-2. Ask questions that are appropriate for a ${interview.seniority} level ${interview.domain} developer
-3. Follow up on answers to dig deeper into the candidate's knowledge
-4. Cover both technical knowledge and practical experience
-5. Keep questions clear and concise
-6. Avoid asking more than one question at a time
-7. Maintain a conversational and professional tone`;
+      //             Guidelines for this interview:
+      //             1. Start with a friendly introduction and explain the interview format
+      //             2. Ask questions that are appropriate for a ${interview.seniority} level ${interview.domain} developer
+      //             3. Follow up on answers to dig deeper into the candidate's knowledge
+      //             4. Cover both technical knowledge and practical experience
+      //             5. Keep questions clear and concise
+      //             6. Avoid asking more than one question at a time
+      //             7. Maintain a conversational and professional tone`;
       
       // Start the VAPI call
-      await vapiInstanceRef.current.start({
-        name: 'Interviewer',
-        voice: {
-          model: 'eleven_flash_v2_5',
-          voiceId: 'sarah',
-          provider: '11labs',
-          stability: 0.5,
-          similarityBoost: 0.75
-        },
-        model: {
-          model: 'gpt-4.5-preview',
-          messages: [
-            {
-              role: 'system',
-              content: systemPrompt
-            }
-          ],
-          provider: 'openai'
-        },
-        firstMessage: `Hello! Im your interviewer today for the ${interview.title} position. Ill be asking you some questions to understand your experience and technical knowledge in ${interview.domain}. Let's start by having you introduce yourself and tell me a bit about your background.`,
-        endCallMessage: 'Thank you for participating in this interview. Weve covered all the key areas I wanted to assess. Ive gathered good insights into your skills and experience. The interview is now complete.',
-        transcriber: {
-          model: 'nova-3',
-          language: 'en',
-          provider: 'deepgram'
-        },
-        backgroundDenoisingEnabled: true,
-        messagePlan: {
-          idleMessages: ['Are you still there?', 'Should we continue the interview?']
-        },
-        compliancePlan: {
-          hipaaEnabled: false,
-          pciEnabled: false
-        },
+      // await vapiInstanceRef.current.start({
+      //   name: 'Interviewer',
+      //   voice: {
+      //     model: 'eleven_flash_v2_5',
+      //     voiceId: 'sarah',
+      //     provider: '11labs',
+      //     stability: 0.5,
+      //     similarityBoost: 0.75
+      //   },
+      //   model: {
+      //     model: 'gpt-4.5-preview',
+      //     messages: [
+      //       {
+      //         role: 'system',
+      //         content: systemPrompt
+      //       }
+      //     ],
+      //     provider: 'openai'
+      //   },
+      //   firstMessage: `Hello! Im your interviewer today for the ${interview.title} position. Ill be asking you some questions to understand your experience and technical knowledge in ${interview.domain}. Let's start by having you introduce yourself and tell me a bit about your background.`,
+      //   endCallMessage: 'Thank you for participating in this interview. Weve covered all the key areas I wanted to assess. Ive gathered good insights into your skills and experience. The interview is now complete.',
+      //   transcriber: {
+      //     model: 'nova-3',
+      //     language: 'en',
+      //     provider: 'deepgram'
+      //   },
+      //   backgroundDenoisingEnabled: true,
+      //   messagePlan: {
+      //     idleMessages: ['Are you still there?', 'Should we continue the interview?']
+      //   },
+      //   compliancePlan: {
+      //     hipaaEnabled: false,
+      //     pciEnabled: false
+      //   },
+      //   metadata: {
+      //     "sessionId": interviewSessionId.current
+      //   }
+      // });
+
+      // Start the VAPI call with assistant id
+      
+      const assistantOverrides = {
         metadata: {
           "sessionId": interviewSessionId.current
-        }
-      });
+        },
+        variableValues: {
+          interview_title:interview.title,
+          interview_domain:interview.domain,
+          interview_duration:interview.duration,
+          interview_seniority:interview.seniority,
+          interview_keyskills :interview.key_skills
+        },
+      };
+      await vapiInstanceRef.current.start("6892e53e-b9cb-4c3c-95e7-4c1b984abf47",assistantOverrides);
+
     } catch (error) {
       console.error('VAPI start error:', error);
       setIsInterviewActive(false);
@@ -445,13 +463,28 @@ Guidelines for this interview:
                     <div className="text-sm text-gray-600 mt-1">{interview.domain} • {interview.seniority}</div>
                   </div>
                   
-                  {/* End interview button */}
-                  <button
-                    onClick={handleEndInterview}
-                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  >
-                    End Interview
-                  </button>
+                  {!micReady ? (
+                      <div className="flex justify-center">
+                      <button
+                        disabled
+                        className="px-6 py-3 bg-gray-300 text-gray-600 rounded-md flex items-center justify-center"
+                      >
+                        <svg className="animate-spin h-4 w-4 mr-2 text-gray-600" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                        Waiting for microphone...
+                      </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleEndInterview}
+                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow transition-colors"
+                      >
+                        End Interview
+                      </button>
+                    )}
+                  
                 </div>
               </div>
             </div>
