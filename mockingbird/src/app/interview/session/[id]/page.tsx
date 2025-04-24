@@ -84,12 +84,12 @@ export default function InterviewSessionPage({ params }: PageProps) {
         // For now, using mock data
         const mockInterview: Interview = {
           id: parseInt(id),
-          title: 'Frontend Developer Interview',
-          description: 'Comprehensive assessment of React skills, JavaScript proficiency, and frontend fundamentals.',
-          domain: 'Frontend',
-          seniority: 'Mid-Level',
-          duration: '30 mins',
-          key_skills: 'JavaScript,React,CSS,HTML,TypeScript',
+          title: 'xx',
+          description: 'xx',
+          domain: 'xx',
+          seniority: 'xx',
+          duration: 'xx',
+          key_skills: 'xx',
           created_at: new Date().toISOString(),
         };
         setInterview(mockInterview);
