@@ -273,7 +273,7 @@ export default function InterviewSessionPage({ params }: PageProps) {
           interview_keyskills :interview.key_skills
         },
       };
-      await vapiInstanceRef.current.start("6892e53e-b9cb-4c3c-95e7-4c1b984abf47",assistantOverrides);
+      await vapiInstanceRef.current.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID,assistantOverrides);
 
     } catch (error) {
       console.error('VAPI start error:', error);
