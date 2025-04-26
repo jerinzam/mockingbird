@@ -23,7 +23,7 @@ interface InterviewAnalysis {
 }
 
 const RETRY_CONFIG = {
-  maxRetries: 5,
+  maxRetries: 10,
   baseDelay: 2000,
   maxDelay: 10000,
   backoffFactor: 2,
