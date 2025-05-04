@@ -97,11 +97,11 @@ async function main() {
 }
 main();
 
-export async function getInterviews() {
-    const interviews = await db.select().from(interviewTable);
-    console.log('Getting all interviews from the database: ', interviews);
-    return interviews;
-  }
+// export async function getInterviews() {
+//     const interviews = await db.select().from(interviewTable);
+//     console.log('Getting all interviews from the database: ', interviews);
+//     return interviews;
+//   }
 
 // import { config } from 'dotenv';
 // import { drizzle } from 'drizzle-orm/postgres-js';

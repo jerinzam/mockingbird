@@ -1,15 +1,49 @@
 // app/interview/page.tsx
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { getInterviews } from '../../index';
+// import { getInterviews } from '../../index';
 import { MockingbirdHeader } from '../components/mockingBirdHeader';
 
-export const metadata = {
-  title: 'Interview List | Mockingbird',
-  description: 'Manage your AI-powered interviews with Mockingbird',
-};
+// export const metadata = {
+//   title: 'Interview List | Mockingbird',
+//   description: 'Manage your AI-powered interviews with Mockingbird',
+// };
 
-export default async function InterviewListPage() {
-  const interviews = await getInterviews();
+interface Interview {
+  id: string;
+  title: string;
+  description: string;
+  domain: string;
+  seniority: string;
+  duration: string;
+  key_skills: string;
+}
+
+export default function InterviewListPage() {
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    async function fetchInterviews() {
+      try {
+        const res = await fetch('/api/get-interviews');
+        if (!res.ok) throw new Error('Failed to fetch interviews');
+        const data = await res.json();
+        console.log("Ïnterviews fetched",data.length)
+        setInterviews(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchInterviews();
+  }, []);
+
+
 
 type SeniorityLevel = 'Senior' | 'Mid-Level' | 'Junior' | 'Lead' | 'Executive' | 'default';
 
