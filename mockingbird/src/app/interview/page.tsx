@@ -1,7 +1,7 @@
 // app/interview/page.tsx
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 // import { getInterviews } from '../../index';
 import { MockingbirdHeader } from '../components/mockingBirdHeader';
@@ -23,8 +23,8 @@ interface Interview {
 
 export default function InterviewListPage() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     async function fetchInterviews() {
@@ -34,10 +34,11 @@ export default function InterviewListPage() {
         const data = await res.json();
         console.log("Ïnterviews fetched",data.length)
         setInterviews(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        console.error('Fetch error:', err);
+        throw err;
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     }
     fetchInterviews();
