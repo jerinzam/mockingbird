@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { MockingbirdHeader } from '../../../components/mockingBirdHeader';
+import { MockingbirdHeader } from '../../../../../components/mockingBirdHeader';
 
 interface PerformanceMetric {
   value: number;
@@ -36,7 +36,7 @@ export default function InterviewReview() {
   const [retryCount, setRetryCount] = useState(0);
   const [progress, setProgress] = useState(0);
   const params = useParams();
-  const sessionId = params.id as string;
+  const sessionId = params.sessionId as string;
   const abortControllerRef = useRef<AbortController | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

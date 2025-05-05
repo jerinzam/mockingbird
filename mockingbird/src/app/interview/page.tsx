@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 // import { getInterviews } from '../../index';
 import { MockingbirdHeader } from '../components/mockingBirdHeader';
+// import { withAuth } from '@/utils/withAuth';
 
 // export const metadata = {
 //   title: 'Interview List | Mockingbird',
@@ -21,7 +22,7 @@ interface Interview {
   key_skills: string;
 }
 
-export default function InterviewListPage() {
+export default function InterviewListPage()  {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState<string | null>(null);
@@ -142,7 +143,7 @@ const getStatusColor = (seniority: string) => {
                     <td className="px-3 py-2 text-xs">
                       <div className="flex flex-col space-y-1.5">
                         <Link
-                          href={`/interview/session/${interview.id}`}
+                          href={`/interview/${interview.id}`}
                           className="inline-block bg-green-500 text-white px-2.5 py-1 rounded text-[10px] font-bold 
                             hover:bg-green-600 transition-colors"
                         >
