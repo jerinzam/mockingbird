@@ -1,5 +1,5 @@
 import { integer, pgTable, serial, text, timestamp, varchar,boolean } from 'drizzle-orm/pg-core';
-import { is, relations } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 // import { boolean } from 'drizzle-orm/gel-core';
 
 // Enum for domains

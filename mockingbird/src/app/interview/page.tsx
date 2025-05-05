@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 // import { getInterviews } from '../../index';
 import { MockingbirdHeader } from '../components/mockingBirdHeader';
-import { withAuth } from '@/utils/withAuth';
+// import { withAuth } from '@/utils/withAuth';
 
 // export const metadata = {
 //   title: 'Interview List | Mockingbird',

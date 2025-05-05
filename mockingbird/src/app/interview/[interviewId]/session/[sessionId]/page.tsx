@@ -188,7 +188,7 @@ export default function InterviewSessionPage({ params }: PageProps) {
     return <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
       <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-2">Interview Not Found</h1>
-        <p className="text-gray-600 text-xs mb-4">The interview you're looking for doesn't exist or has been removed.</p>
+        <p className="text-gray-600 text-xs mb-4">The interview {`you're`} looking for {`doesn't`} exist or has been removed.</p>
         <Link href="/interview" className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md shadow-[3px_3px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all text-xs">
           Back to Interviews
         </Link>
