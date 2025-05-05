@@ -147,7 +147,7 @@ export default function CreateInterviewPage() {
       }
   
       // Redirect to interview session page
-      router.push(`/interview/session/${data.id}`);
+      router.push(`/interview/${data.id}`);
     } catch (error) {
       console.error('Error:', error);
       setIsSubmitting(false);
