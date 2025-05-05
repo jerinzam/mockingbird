@@ -22,7 +22,7 @@ interface Interview {
   key_skills: string;
 }
 
-function InterviewListPage() {
+export default function InterviewListPage()  {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState<string | null>(null);
@@ -190,5 +190,3 @@ const getStatusColor = (seniority: string) => {
     </div>
   );
 }
-
-export default withAuth(InterviewListPage);
