@@ -1,5 +1,6 @@
-import { integer, pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { integer, pgTable, serial, text, timestamp, varchar,boolean } from 'drizzle-orm/pg-core';
+import { is, relations } from 'drizzle-orm';
+// import { boolean } from 'drizzle-orm/gel-core';
 
 // Enum for domains
 export const domains = [
@@ -37,7 +38,8 @@ export const interviewTable = pgTable('interviews', {
   duration: varchar('duration', { length: 50 }), // e.g., '30 mins', '1 hour'
   created_at: timestamp('created_at')
     .defaultNow()
-    .notNull()
+    .notNull(),
+  is_public: boolean('is_public')
 });
 
 // Optional: If you want to add relations or do more complex queries
@@ -52,14 +54,16 @@ export type NewInterview = typeof interviewTable.$inferInsert;
 // Define the interviewSession table
 export const interviewSessionTable = pgTable('interview_session', {
   id: serial('id').primaryKey(),
-  interview_role_id: integer('interview_role_id')
+  interview_id: integer('interview_role_id')
     .notNull()
     .references(() => interviewTable.id), // Foreign key reference to interviews table
   created_at: timestamp('created_at').defaultNow().notNull(),
   call_transcript: text('call_transcript'), // Store the transcript as JSON or text
   call_ended_reason: text('call_ended_reason'), // e.g., "completed", "terminated", "error"
   call_started_time: timestamp('call_started_time'),
-  call_ended_time: timestamp('call_ended_time')
+  call_ended_time: timestamp('call_ended_time'),
+  token: varchar('token', { length: 255 }).unique(), // Unique token for the session
+  session_uuid: varchar('session_uuid', { length: 36 }).notNull().unique(), // Public-safe identifier
 });
 
 // Define the types for type-safe operations
