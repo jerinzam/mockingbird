@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { MockingbirdHeader } from '../../components/mockingBirdHeader';
+import { useSession } from '@/app/providers';
 
 interface Interview {
   id: number;
@@ -16,7 +17,16 @@ interface Interview {
   key_skills: string | null;
   created_at: string;
   is_public?: boolean;
+  owner: string
 }
+
+interface InterviewSession {
+  id: string;
+  created_at: string;
+  call_ended_reason: string | null;
+  interview_role_id: number;
+}
+
 
 interface PageProps {
   params: Promise<{ interviewId: string }>;
@@ -26,8 +36,12 @@ export default function InterviewDetailPage({ params }: PageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [interview, setInterview] = useState<Interview | null>(null);
+  const [interviewSessions, setInterviewSessions] = useState<InterviewSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+
+  const session = useSession();
+  const user = session?.user;
 
   useEffect(() => {
     const fetchInterview = async () => {
@@ -45,6 +59,19 @@ export default function InterviewDetailPage({ params }: PageProps) {
 
         const data = await response.json();
         setInterview(data);
+
+        // Fetch previous attempts if user is the owner
+        if (user && data.owner === user.id) {
+          const sessionsResponse = await fetch(`/api/interview/${interviewId}/sessions`,{
+            method: 'GET',
+            credentials: 'include', // ← MUST be set to include Supabase auth cookies
+          });
+          const sessionsData = await sessionsResponse.json();
+          setInterviewSessions(sessionsData);
+          console.log('Previous attempts:', sessionsData);
+        }
+        console.log(data.owner,user)
+
       } catch (error) {
         console.error('Failed to fetch interview:', error);
       } finally {
@@ -121,7 +148,6 @@ export default function InterviewDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[#f4f4f4] text-[#222222] font-mono">
       <MockingbirdHeader />
-
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-3/5">
@@ -147,6 +173,26 @@ export default function InterviewDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
+            
+            {interview.owner === user?.id && interviewSessions.length > 0 && (
+              <div className="mt-10">
+                <h3 className="text-lg font-bold mb-2"> Attempts</h3>
+                <ul className="space-y-2 text-xs">
+                  {interviewSessions.map((session) => (
+                    <li key={session.id} className="border border-gray-300 rounded p-2 bg-white shadow-[2px_2px_0_#000]">
+                      <p><strong>Date:</strong> {new Date(session.created_at).toLocaleString()}</p>
+                      <p><strong>Call Ended:</strong> {session.call_ended_reason ?? 'Unknown'}</p>
+                      <Link href={`/interview/${interview.id}/session/${session.id}/review`} className="underline text-blue-600">
+                        View Session
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+
+
           </div>
 
           <div className="w-full lg:w-2/5 space-y-6">

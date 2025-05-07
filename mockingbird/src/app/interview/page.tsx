@@ -191,4 +191,5 @@ const getStatusColor = (seniority: string) => {
   );
 }
 
-export default withAuth(InterviewListPage);
+// export default withAuth(InterviewListPage);
+export default InterviewListPage;

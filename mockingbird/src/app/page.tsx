@@ -50,7 +50,10 @@ const HomePage: NextPage = () => {
 
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google'
+      provider: 'google',
+      options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
     });
     if (error) {
       console.error('Google login error:', error.message);
@@ -145,7 +148,7 @@ const HomePage: NextPage = () => {
                 </button>
                 {showTooltip && (
                   <div className="absolute z-10 bg-black text-white text-xs rounded py-1 px-2 w-48 -left-20 bottom-6 shadow-lg">
-                    Enter your 8-digit code to access your specific interview session that you've been invited to.
+                    Enter your 8-digit code to access your specific interview session that {`you've`} been invited to.
                   </div>
                 )}
               </div>

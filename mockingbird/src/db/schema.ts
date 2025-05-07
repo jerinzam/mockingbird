@@ -1,5 +1,5 @@
-import { integer, pgTable, serial, text, timestamp, varchar,boolean } from 'drizzle-orm/pg-core';
-import { is, relations } from 'drizzle-orm';
+import { integer, pgTable, serial, text, timestamp, varchar,boolean,uuid } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 // import { boolean } from 'drizzle-orm/gel-core';
 
 // Enum for domains
@@ -39,7 +39,8 @@ export const interviewTable = pgTable('interviews', {
   created_at: timestamp('created_at')
     .defaultNow()
     .notNull(),
-  is_public: boolean('is_public')
+  is_public: boolean('is_public'),
+  owner: uuid('owner').notNull()
 });
 
 // Optional: If you want to add relations or do more complex queries
