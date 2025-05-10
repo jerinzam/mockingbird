@@ -3,7 +3,7 @@
 import { useState, FormEvent } from 'react';
 // import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MockingbirdHeader } from '../../components/mockingBirdHeader';
+import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 const INTERVIEW_TEMPLATE = {
   title: 'Frontend Developer Technical Interview',

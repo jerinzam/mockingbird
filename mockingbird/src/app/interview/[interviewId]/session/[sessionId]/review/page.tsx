@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { MockingbirdHeader } from '../../../../../components/mockingBirdHeader';
+import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 interface PerformanceMetric {
   value: number;

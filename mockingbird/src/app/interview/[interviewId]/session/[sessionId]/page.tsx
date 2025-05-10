@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
-import { MockingbirdHeader } from '../../../../components/mockingBirdHeader';
+import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 interface Interview {
   id: number;

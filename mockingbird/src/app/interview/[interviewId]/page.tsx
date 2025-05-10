@@ -4,8 +4,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { MockingbirdHeader } from '../../components/mockingBirdHeader';
+import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 import { useSession } from '@/app/providers';
+import { InterviewSummary } from '@/components/interview/InterviewSummary';
 
 interface Interview {
   id: number;
@@ -151,28 +152,7 @@ export default function InterviewDetailPage({ params }: PageProps) {
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-3/5">
-            <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden">
-              <div className="p-6 border-b-2 border-black">
-                <h2 className="text-3xl font-bold tracking-tight mb-2">{interview.title}</h2>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-300">{interview.domain}</span>
-                  <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded border border-purple-300">{interview.seniority}</span>
-                  <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded border border-gray-300">{interview.duration}</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-bold mb-2">Description</h3>
-                <p className="text-xs mb-4">{interview.description}</p>
-                <h3 className="text-lg font-bold mb-2">Key Skills</h3>
-                <div className="flex flex-wrap gap-1 mb-6">
-                  {interview.key_skills?.split(',').map((skill, index) => (
-                    <span key={index} className="bg-gray-200 text-gray-700 text-[9px] px-1.5 py-0.5 rounded">
-                      {skill.trim()}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <InterviewSummary interview={interview} />
             
             {interview.owner === user?.id && interviewSessions.length > 0 && (
               <div className="mt-10">

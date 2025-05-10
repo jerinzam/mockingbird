@@ -1,6 +1,6 @@
 // app/about/page.tsx
 import Link from 'next/link';
-import { MockingbirdHeader } from '../components/mockingBirdHeader';
+import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 export const metadata = {
   title: 'About Mockingbird | AI Interview Practice',
