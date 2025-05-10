@@ -1,32 +1,45 @@
+// app/providers.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabaseClient';
-import { Session } from '@supabase/supabase-js';
 
-const AuthContext = createContext<Session | null>(null);
+const SessionContext = createContext<{
+  session: any;
+  userEmail: string | null;
+}>({
+  session: null,
+  userEmail: null,
+});
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session ?? null);
-    };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setUserEmail(session?.user?.email ?? null);
     });
 
-    getSession();
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUserEmail(session?.user?.email ?? null);
+    });
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  return <AuthContext.Provider value={session}>{children}</AuthContext.Provider>;
+  return (
+    <SessionContext.Provider value={{ session, userEmail }}>
+      {children}
+    </SessionContext.Provider>
+  );
 }
 
-export const useSession = () => useContext(AuthContext);
+export const AuthProvider = SessionProvider;
+export const useSession = () => useContext(SessionContext);

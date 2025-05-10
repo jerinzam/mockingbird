@@ -40,6 +40,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+
     const sessions = await db
       .select({
         id: interviewSessionTable.id,

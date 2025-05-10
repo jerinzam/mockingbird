@@ -1,8 +1,6 @@
-import { integer, pgTable, serial, text, timestamp, varchar,boolean,uuid } from 'drizzle-orm/pg-core';
+import { integer, pgTable, serial, text, timestamp, varchar, boolean, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-// import { boolean } from 'drizzle-orm/gel-core';
 
-// Enum for domains
 export const domains = [
   'Web Development',
   'Frontend', 
@@ -20,8 +18,6 @@ export const domains = [
   'UI/UX'
 ] as const;
 
-// type Domain = typeof domains[number];
-
 export const interviewTable = pgTable('interviews', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
@@ -35,38 +31,46 @@ export const interviewTable = pgTable('interviews', {
     enum: ['Junior', 'Mid-Level', 'Senior', 'Lead', 'Executive'] 
   }).notNull(),
   key_skills: text('key_skills'),
-  duration: varchar('duration', { length: 50 }), // e.g., '30 mins', '1 hour'
-  created_at: timestamp('created_at')
-    .defaultNow()
-    .notNull(),
+  duration: varchar('duration', { length: 50 }),
+  created_at: timestamp('created_at').defaultNow().notNull(),
   is_public: boolean('is_public'),
   owner: uuid('owner').notNull()
 });
 
-// Optional: If you want to add relations or do more complex queries
-export const interviewsRelations = relations(interviewTable, ({ }) => ({
-  // You can add relations to other tables here in the future
-}));
+export const interviewsRelations = relations(interviewTable, ({ }) => ({}));
 
-// Type inference helper
 export type Interview = typeof interviewTable.$inferSelect;
 export type NewInterview = typeof interviewTable.$inferInsert;
 
-// Define the interviewSession table
 export const interviewSessionTable = pgTable('interview_session', {
   id: serial('id').primaryKey(),
   interview_id: integer('interview_role_id')
     .notNull()
-    .references(() => interviewTable.id), // Foreign key reference to interviews table
+    .references(() => interviewTable.id),
   created_at: timestamp('created_at').defaultNow().notNull(),
-  call_transcript: text('call_transcript'), // Store the transcript as JSON or text
-  call_ended_reason: text('call_ended_reason'), // e.g., "completed", "terminated", "error"
+  call_transcript: text('call_transcript'),
+  call_ended_reason: text('call_ended_reason'),
   call_started_time: timestamp('call_started_time'),
   call_ended_time: timestamp('call_ended_time'),
-  token: varchar('token', { length: 255 }).unique(), // Unique token for the session
-  session_uuid: varchar('session_uuid', { length: 36 }).notNull().unique(), // Public-safe identifier
+  token: varchar('token', { length: 255 }).unique(),
+  session_uuid: varchar('session_uuid', { length: 36 }).notNull().unique()
 });
 
-// Define the types for type-safe operations
 export type InterviewSession = typeof interviewSessionTable.$inferSelect;
 export type NewInterviewSession = typeof interviewSessionTable.$inferInsert;
+
+// ✅ New Invite Table
+export const invites = pgTable('invites', {
+  id: serial('id').primaryKey(),
+  invite_code: varchar('invite_code', { length: 255 }).notNull().unique(),
+  interview_id: integer('interview_id').notNull().references(() => interviewTable.id),
+  name: varchar('name', { length: 255 }),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 20 }),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+  created_by: uuid('created_by').notNull()
+});
+
+export type Invite = typeof invites.$inferSelect;
+export type NewInvite = typeof invites.$inferInsert;
