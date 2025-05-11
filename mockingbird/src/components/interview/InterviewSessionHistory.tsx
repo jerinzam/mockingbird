@@ -10,7 +10,12 @@ type Session = {
   call_ended_reason: string | null
 }
 
-export function InterviewSessionHistory({ interviewId }: { interviewId: number }) {
+interface InterviewSessionHistoryProps {
+  interviewId: number;
+  onSessionClick?: (session: Session) => void;
+}
+
+export function InterviewSessionHistory({ interviewId, onSessionClick }: InterviewSessionHistoryProps) {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -47,18 +52,14 @@ export function InterviewSessionHistory({ interviewId }: { interviewId: number }
     <div className="space-y-2 text-xs">
       {sessions.map((session) => (
         <div
-          key={session.id}
-          className="border border-gray-300 rounded p-3 bg-white shadow-[2px_2px_0_#000]"
-        >
-          <p><strong>Date:</strong> {new Date(session.created_at).toLocaleString()}</p>
-          <p><strong>Ended:</strong> {session.call_ended_reason ?? 'Unknown'}</p>
-          <Link
-            href={`/interview/${interviewId}/session/${session.id}/review`}
-            className="text-blue-600 underline"
-          >
-            View Session
-          </Link>
-        </div>
+        key={session.id}
+        className="border border-gray-300 rounded p-3 bg-white shadow-[2px_2px_0_#000] cursor-pointer hover:bg-gray-100"
+        onClick={() => onSessionClick && onSessionClick(session)}
+      >
+        <p><strong>Date:</strong> {new Date(session.created_at).toLocaleString()}</p>
+        <p><strong>Ended:</strong> {session.call_ended_reason ?? 'Unknown'}</p>
+        <span className="text-blue-600 underline">View Session</span>
+      </div>
       ))}
     </div>
   )

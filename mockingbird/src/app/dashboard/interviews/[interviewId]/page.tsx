@@ -5,6 +5,7 @@ import { InterviewSummary } from '@/components/interview/InterviewSummary';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 import { InviteManager } from '@/components/interview/InviteManager';
 import { InterviewSessionHistory } from '@/components/interview/InterviewSessionHistory';
+import SessionDetailsPanel from '@/components/interview/SessionDetailsPanel';
 
 type Interview = {
   id: number;
@@ -25,6 +26,7 @@ export default function InterviewDashboardPage() {
   const [interview, setInterview] = useState<Interview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState<'details' | 'invites' | 'sessions'>('details');
+  const [selectedSession, setSelectedSession] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     const activeTab = searchParams.get('tab');
@@ -68,7 +70,20 @@ export default function InterviewDashboardPage() {
       case 'invites':
         return <InviteManager interviewId={interview.id} />;
       case 'sessions':
-        return <InterviewSessionHistory interviewId={interview.id} />;
+        // return <InterviewSessionHistory interviewId={interview.id} />;
+        return (
+          <>
+            <InterviewSessionHistory
+              interviewId={interview.id}
+              onSessionClick={session => setSelectedSession({ id: session.id, title: 'Session' })}
+            />
+            <SessionDetailsPanel
+              open={!!selectedSession}
+              session={selectedSession || undefined}
+              onClose={() => setSelectedSession(null)}
+            />
+          </>
+        )
       default:
         return null;
     }
