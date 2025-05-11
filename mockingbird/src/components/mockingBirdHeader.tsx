@@ -1,4 +1,3 @@
-// components/mockingBirdHeader.tsx
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +5,8 @@ import Link from 'next/link';
 import { useSession } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabaseClient';
+import { useOrgContext } from '@/context/orgContext';
+
 const birdIcons = {
   faceRight: () => <span className="text-6xl">🐦</span>,
   faceLeft: () => <span className="text-6xl">🕊️</span>,
@@ -23,7 +24,8 @@ const birdIcons = {
 
 export function MockingbirdHeader() {
   const [currentIconKey, setCurrentIconKey] = useState<keyof typeof birdIcons>('faceRight');
-  const { userEmail, session } = useSession();
+  const { session } = useSession();
+  const { org } = useOrgContext();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,8 +41,6 @@ export function MockingbirdHeader() {
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      // Your login logic here (e.g., Supabase auth)
-
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -57,7 +57,6 @@ export function MockingbirdHeader() {
   const handleLogout = async () => {
     setIsLoading(true);
     try {
-
       await supabase.auth.signOut();
       router.push('/');
     } catch (error) {
@@ -121,12 +120,22 @@ export function MockingbirdHeader() {
             </span>
           </Link>
 
+          {/* Org Settings Button */}
+          {session && org && (
+            <Link
+              href={`/dashboard/organizations/${org.id}/settings`}
+              className="px-3 py-1 border border-black text-[10px] font-bold rounded bg-blue-200 hover:bg-blue-300 transition-all"
+            >
+              Org Settings
+            </Link>
+          )}
+
           {/* User Section */}
           {session ? (
             <>
               <div className="h-4 w-px bg-gray-300 mx-2"></div>
               <span className="px-3 py-1 bg-gray-100 border border-black rounded text-[10px] font-medium">
-                {userEmail}
+                {org?.name ?? 'No Org'}
               </span>
               <button
                 onClick={handleLogout}

@@ -1,7 +1,8 @@
-// import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from './providers';
+// import OrgBrandingProvider from '@/components/orgBrandingProvider';
+import { OrgProvider } from '@/context/orgContext'; // <-- Import OrgProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,12 +14,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// export const metadata = {
-//   title: 'Mockingbird | AI Interview Practice',
-//   description: 'AI-powered mock interview platform'
-
-// }
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,11 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {children}
+          <OrgProvider> {/* <-- Add OrgProvider here */}
+              {children}
+          </OrgProvider>
         </AuthProvider>
       </body>
     </html>

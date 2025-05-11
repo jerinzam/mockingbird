@@ -39,7 +39,10 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      router.push('/interview'); // ✅ Change this as needed
+      // Ensure personal org exists for the user
+      await fetch('/api/organizations/ensurePersonal', { method: 'POST' });
+
+      router.push('/dashboard'); // Or wherever you want to redirect after login
     };
 
     finalizeLogin();
