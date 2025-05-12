@@ -9,7 +9,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: {
-        domain: ".localhost",
+        domain: ".mockingbird.com",
         secure: false,
         maxAge: 100000000,
         path: '/',

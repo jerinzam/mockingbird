@@ -20,6 +20,7 @@ export default function OrgLayout({ children, params }: { children: React.ReactN
   const [orgSettings, setOrgSettings] = useState<any>(null);
   const [orgSlug, setOrgSlug] = useState<string>('');
   const [user, setUser] = useState<any>(null);
+  const [userOrg, setUserOrg] = useState<any>(null);
   const router = useRouter();
   const { session } = useSession();
   const supabase = createClient()
@@ -47,13 +48,27 @@ export default function OrgLayout({ children, params }: { children: React.ReactN
     }
   }, [orgSlug]);
 
+  // Fetch user's organization
+  useEffect(() => {
+    const fetchUserOrg = async () => {
+      if (user) {
+        const res = await fetch('/api/organizations/me/default');
+        if (res.ok) {
+          const data = await res.json();
+          setUserOrg(data.org);
+        }
+      }
+    };
+    fetchUserOrg();
+  }, [user]);
+
   const handleLogin = async () => {
     setIsLoading(true);
     try {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/api/auth/callback`
         }
       });
     } catch (error) {
@@ -83,6 +98,7 @@ export default function OrgLayout({ children, params }: { children: React.ReactN
         isLoading={isLoading}
         handleLogin={handleLogin}
         handleLogout={handleLogout}
+        org={userOrg ? { id: userOrg.id.toString(), name: userOrg.name } : undefined}
       >
         {children}
       </OrgBrandingProvider>

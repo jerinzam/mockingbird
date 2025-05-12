@@ -27,7 +27,7 @@ export default function OrgBrandingProvider({
   handleLogin?: () => void;
   handleLogout?: () => void;
 }) {
-  console.log("inbrandingprovider XXXX",session)
+  console.log("inbrandingprovider XXXX",session,org)
   const branding = orgSettings?.branding || {};
   const primaryColor = branding.primaryColor || '#4F46E5';
   const pathname = usePathname();
@@ -66,7 +66,7 @@ export default function OrgBrandingProvider({
 
   // Dashboard click handler (optional, like MockingbirdHeader)
   const onDashboardClick = (e: React.MouseEvent) => {
-    console.log("inbrandingprovider XXXX2")
+   
     if (!session && handleLogin) {
       e.preventDefault();
       handleLogin();
