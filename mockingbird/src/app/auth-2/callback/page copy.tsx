@@ -18,6 +18,7 @@ function extractTokensFromHash(hash: string) {
 }
 
 export default function AuthCallbackPage() {
+  console.log('in AUTHCallbackPage XXXXXX ');
   const router = useRouter();
 
   useEffect(() => {
@@ -25,10 +26,11 @@ export default function AuthCallbackPage() {
       const { access_token, refresh_token } = extractTokensFromHash(window.location.hash);
 
       if (!access_token || !refresh_token) {
+        console.log('[OAuth Callback] Missing access or refresh token');
         console.error('[OAuth Callback] Missing access or refresh token.');
         return;
       }
-
+      console.log('[OAuth Callback] HASSSSS access or refresh token');
       const { error } = await supabase.auth.setSession({
         access_token,
         refresh_token,
@@ -38,6 +40,14 @@ export default function AuthCallbackPage() {
         console.error('[OAuth Callback] Failed to set session:', error.message);
         return;
       }
+
+      // Set cross-subdomain cookie via API route
+      await fetch('/api/auth/set-cookie', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: access_token }),
+        credentials: 'include',
+      });
 
       // Ensure personal org exists for the user
       await fetch('/api/organizations/ensurePersonal', { method: 'POST' });

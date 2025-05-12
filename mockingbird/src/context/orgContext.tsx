@@ -22,7 +22,7 @@ const OrgContext = createContext<OrgContextType>({
 export function OrgProvider({ children }: { children: React.ReactNode }) {
   const [org, setOrg] = useState<Org | null>(null);
   const { session } = useSession();
-  console.log("SESSIONSSSSS",session)
+  console.log("SESSIONSSSSS2",session)
   useEffect(() => {
     if (!session) return; // Only fetch if logged in
 

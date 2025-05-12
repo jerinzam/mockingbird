@@ -8,6 +8,13 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: {
+        domain: ".localhost",
+        secure: false,
+        maxAge: 100000000,
+        path: '/',
+        sameSite: 'lax',
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -24,6 +31,7 @@ export async function createClient() {
           }
         },
       },
+      
     }
   )
 }

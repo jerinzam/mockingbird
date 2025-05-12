@@ -2,12 +2,12 @@
 import { NextPage } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 const HomePage: NextPage = () => {
   const [code, setCode] = useState(['', '', '', '', '', '', '', '']);
   const [showTooltip, setShowTooltip] = useState(false);
-
+  const supabase = createClient();
   const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1) {
       const newCode = [...code];
@@ -52,7 +52,7 @@ const HomePage: NextPage = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-      redirectTo: `${window.location.origin}/auth/callback`
+      redirectTo: `${window.location.origin}/api/auth/callback`
     }
     });
     if (error) {

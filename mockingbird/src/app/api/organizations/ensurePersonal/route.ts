@@ -4,13 +4,13 @@ import { db } from '@/index';
 import { organizationsTable, organizationMembersTable } from '@/db/schema';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabaseServer';
-import { eq } from 'drizzle-orm';
+import { eq,and } from 'drizzle-orm';
 
 export async function POST() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-
+    console.log("Checking user in ensurePerson",user)
     if (!user || !user.email) {
         return NextResponse.json({ error: 'Unauthorized or missing email' }, { status: 401 });
       }
@@ -24,11 +24,13 @@ export async function POST() {
       eq(organizationMembersTable.organization_id, organizationsTable.id)
     )
     .where(
-        eq(organizationMembersTable.user_id, user.id) &&
-        eq(organizationsTable.type, 'personal') &&
+      and(
+        eq(organizationMembersTable.user_id, user.id),
+        eq(organizationsTable.type, 'personal'),
         eq(organizationMembersTable.role, 'admin')
-      );
-
+      )
+    );
+    console.log("existing org",existingOrg)
     if (existingOrg) {
       return NextResponse.json({ success: true, org: existingOrg });
     }

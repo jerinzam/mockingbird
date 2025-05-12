@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSession } from '@/app/providers';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 import { useOrgContext } from '@/context/orgContext';
 
 const birdIcons = {
@@ -28,7 +28,7 @@ export function MockingbirdHeader() {
   const { org } = useOrgContext();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-
+  const supabase = createClient()
   const cycleIcon = () => {
     const keys = Object.keys(birdIcons) as Array<keyof typeof birdIcons>;
     const currentIndex = keys.indexOf(currentIconKey);

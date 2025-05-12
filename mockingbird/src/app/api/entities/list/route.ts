@@ -1,5 +1,3 @@
-// src/app/api/entities/list/route.ts
-
 import { db } from '@/index';
 import { 
   entitiesTable, 
@@ -9,24 +7,40 @@ import {
   entityStatus,
   entityVisibility 
 } from '@/db/schema';
+import { organizationsTable } from '@/db/schema'; // Add this import
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabaseServer';
 import { eq, and } from 'drizzle-orm';
+// import { createClient } from '@/utils/supabaseServer'; // Auth client (commented)
+// import { getServerSession } from 'next-auth'; // Auth session (commented)
 
 export async function GET(req: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    // const supabase = await createClient();
+    // const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // if (!user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') as typeof entityTypes[number] | null;
-    const organization_id = searchParams.get('organization_id');
+    const organization_slug = searchParams.get('organization_slug');
     const status = searchParams.get('status') as typeof entityStatus[number] | null;
     const visibility = searchParams.get('visibility') as typeof entityVisibility[number] | null;
+
+    let organization_id: string | undefined = undefined;
+
+    // If slug is provided, look up org ID
+    if (organization_slug) {
+      const [org] = await db
+        .select()
+        .from(organizationsTable)
+        .where(eq(organizationsTable.slug, organization_slug));
+      if (!org) {
+        return NextResponse.json({ success: false, error: 'Organization not found' }, { status: 404 });
+      }
+      organization_id = org.id.toString();
+    }
 
     // Build where conditions
     const conditions = [];

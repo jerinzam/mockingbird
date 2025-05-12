@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-
+  allowedDevOrigins: [
+    "http://jerinzam.localhost:3000",
+    "http://localhost:3000"
+  ],
   async headers() {
     return [
       {

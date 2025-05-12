@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/utils/supabaseClient';
+import { createClient } from '@/utils/supabaseClient';
 
 const SessionContext = createContext<{
   session: any;
@@ -15,12 +15,13 @@ const SessionContext = createContext<{
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-
+  const supabase = createClient()
   useEffect(() => {
 
-    
+ 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("SESSIONSSSSS XXX3",session)
       setSession(session);
       setUserEmail(session?.user?.email ?? null);
     });
