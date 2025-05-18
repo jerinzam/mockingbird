@@ -108,7 +108,7 @@ export default function OrgBrandingProvider({
                 <span className="absolute inset-0 bg-blue-200 opacity-0 group-hover:opacity-50 transition-opacity rounded"></span>
                 <span className="relative">Home</span>
               </Link>
-              <Link href="/training" className="relative group">
+              <Link href="/trainings" className="relative group">
                 <span className="absolute inset-0 bg-blue-200 opacity-0 group-hover:opacity-50 transition-opacity rounded"></span>
                 <span className="relative">Training</span>
               </Link>

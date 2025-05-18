@@ -1,9 +1,9 @@
-// src/app/dashboard/entities/create/interview/page.tsx
+// src/app/dashboard/organizations/orgid/entities/create/interview/page.tsx
 
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 const domains = [
@@ -43,6 +43,8 @@ interface InterviewForm {
 
 export default function CreateInterviewPage() {
   const router = useRouter();
+  const params = useParams();
+  const orgId = params.orgId as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<InterviewForm>({
     title: '',
@@ -59,7 +61,7 @@ export default function CreateInterviewPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/entities/create', {
+      const response = await fetch(`/api/dashboard/org/${orgId}/entities/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +76,7 @@ export default function CreateInterviewPage() {
 
       const data = await response.json();
       if (data.success) {
-        router.push('/dashboard/entities');
+        router.push(`/dashboard/organizations/${orgId}/entities`);
       }
     } catch (error) {
       console.error('Error creating interview:', error);

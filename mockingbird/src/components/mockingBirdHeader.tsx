@@ -107,7 +107,7 @@ export function MockingbirdHeader() {
           {/* Dashboard Link */}
           <div className="h-4 w-px bg-gray-300 mx-2"></div>
           <Link 
-            href="/dashboard"
+            href={`/dashboard/organizations/${org?.id}`}
             onClick={handleDashboardClick}
             className={`relative group ${!session ? 'cursor-pointer' : ''}`}
           >

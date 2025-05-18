@@ -54,7 +54,7 @@ export default function EntitiesPage() {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Entities</h1>
             <button
-              onClick={() => router.push('/dashboard/entities/create')}
+              onClick={() => router.push(`/dashboard/organizations/${orgId}/entities/create`)}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
               Create New
@@ -111,7 +111,7 @@ export default function EntitiesPage() {
               {entities.map((entity) => (
                 <div
                   key={entity.id}
-                  onClick={() => router.push(`/dashboard/entities/${entity.id}`)}
+                  onClick={() => router.push(`/dashboard/organizations/${orgId}/entities/${entity.id}`)}
                   className="bg-white overflow-hidden shadow rounded-lg cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="px-4 py-5 sm:p-6">

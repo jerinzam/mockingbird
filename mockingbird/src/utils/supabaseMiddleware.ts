@@ -10,7 +10,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {      cookieOptions: {
-      domain: ".mockingbird.comlocalhost",
+      domain: ".mockingbird.com",
       secure: false,
       maxAge: 100000000,
       path: '/',
@@ -19,7 +19,7 @@ export async function updateSession(request: NextRequest) {
       cookies: {
         getAll() {
           const cookies = request.cookies.getAll()
-          console.log("XXX", cookies.length)
+          // console.log("XXX", cookies.length)
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {

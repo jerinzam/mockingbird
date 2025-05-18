@@ -42,7 +42,7 @@ export default function InterviewDetailPage({ params }: PageProps) {
   const [accessDenied, setAccessDenied] = useState(false);
 
   const session = useSession();
-  const user = session?.user;
+  const user = session.session?.user;
 
   useEffect(() => {
     const fetchInterview = async () => {

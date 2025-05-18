@@ -6,15 +6,36 @@ import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
-interface Interview {
+// You may want to import types from your schema file if using TypeScript
+// import { Entity, InterviewEntity, TrainingEntity } from '@/db/schema';
+
+interface Entity {
   id: number;
   title: string;
   description: string | null;
+  type: 'interview' | 'training';
+  status: string;
+  visibility: string;
+  vapi_agent_id?: string | null;
+  created_at: string;
+  // ...other fields as needed
+  interview?: InterviewEntity;
+  training?: TrainingEntity;
+}
+
+interface InterviewEntity {
   domain: string;
   seniority: string;
-  duration: string | null;
   key_skills: string | null;
-  created_at: string;
+  duration: string | null;
+}
+
+interface TrainingEntity {
+  category: string;
+  difficulty_level: string;
+  prerequisites: string | null;
+  learning_objectives: string | null;
+  estimated_completion_time: string | null;
 }
 
 interface Message {
@@ -31,14 +52,14 @@ interface VapiTranscriptMessage {
 }
 
 interface PageProps {
-  params: Promise<{ interviewId:string,sessionId: string }>;
+  params: Promise<{ id: string; sessionId: string; org: string }>;
 }
 
-export default function InterviewSessionPage({ params }: PageProps) {
+export default function EntitySessionPage({ params }: PageProps) {
   const router = useRouter();
-  const [interview, setInterview] = useState<Interview | null>(null);
+  const [entity, setEntity] = useState<Entity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInterviewActive, setIsInterviewActive] = useState(true);
+  const [isSessionActive, setIsSessionActive] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [transcript, setTranscript] = useState<Message[]>([]);
   const [isListening] = useState(false);
@@ -49,33 +70,35 @@ export default function InterviewSessionPage({ params }: PageProps) {
   const isNavigatingRef = useRef(false);
   const [micReady, setMicReady] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [interviewId, setInterviewId] = useState<string>('');
+  const [entityId, setEntityId] = useState<string>('');
+  const [org, setOrg] = useState<string>('');
 
   useEffect(() => {
     params.then(p => setSessionId(p.sessionId));
-    params.then(p => setInterviewId(p.interviewId));
+    params.then(p => setEntityId(p.id));
+    params.then(p => setOrg(p.org));
   }, [params]);
 
   useEffect(() => {
-    if (!sessionId) return;
-    const fetchInterviewSession = async () => {
+    if (!sessionId || !entityId) return;
+    const fetchEntitySession = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/interview/session/${sessionId}`);
+        const response = await fetch(`/api/organizations/${org}/entities/${entityId}/sessions/${sessionId}`);
         if (!response.ok) throw new Error('Failed to fetch session');
         const data = await response.json();
-        setInterview(data.interview);
+        setEntity(data.entity);
       } catch (error) {
         console.error('Failed to fetch session:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchInterviewSession();
-  }, [sessionId]);
+    fetchEntitySession();
+  }, [sessionId, entityId, org]);
 
   useEffect(() => {
-    if (vapiInstanceRef.current || !interview || !sessionId) return;
+    if (vapiInstanceRef.current || !entity || !sessionId) return;
     try {
       vapiInstanceRef.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY || '');
       vapiInstanceRef.current.on('message', (message: VapiTranscriptMessage) => {
@@ -95,26 +118,40 @@ export default function InterviewSessionPage({ params }: PageProps) {
       vapiInstanceRef.current.on('call-start', () => setMicReady(true));
       vapiInstanceRef.current.on('call-end', () => {
         if (isNavigatingRef.current) return;
-        setIsInterviewActive(false);
+        setIsSessionActive(false);
         setTimeout(() => {
           if (!isNavigatingRef.current) {
             isNavigatingRef.current = true;
-            router.push(`/interview/${interview.id}/session/${sessionId}/review`);
+            router.push(`/entities/${entityId}/session/${sessionId}/review`);
           }
         }, 100);
       });
 
       const assistantOverrides = {
         metadata: {
-          interviewId: interview.id,
+          entityId: entity.id,
           session_id: sessionId
         },
         variableValues: {
-          interview_title: interview.title,
-          interview_domain: interview.domain,
-          interview_duration: interview.duration,
-          interview_seniority: interview.seniority,
-          interview_keyskills: interview.key_skills
+          entity_title: entity.title,
+          entity_type: entity.type,
+          ...(entity.type === 'interview' && entity.interview
+            ? {
+                interview_domain: entity.interview.domain,
+                interview_duration: entity.interview.duration,
+                interview_seniority: entity.interview.seniority,
+                interview_keyskills: entity.interview.key_skills
+              }
+            : {}),
+          ...(entity.type === 'training' && entity.training
+            ? {
+                training_category: entity.training.category,
+                training_difficulty: entity.training.difficulty_level,
+                training_objectives: entity.training.learning_objectives,
+                training_prerequisites: entity.training.prerequisites,
+                training_estimated_time: entity.training.estimated_completion_time
+              }
+            : {})
         }
       };
       vapiInstanceRef.current.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, assistantOverrides);
@@ -128,15 +165,15 @@ export default function InterviewSessionPage({ params }: PageProps) {
         vapiInstanceRef.current = null;
       }
     };
-  }, [interview, sessionId, router]);
+  }, [entity, sessionId, router, entityId, org]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
-    if (isInterviewActive) {
+    if (isSessionActive) {
       timerId = setInterval(() => setElapsedTime((prev) => prev + 1), 1000);
     }
     return () => clearInterval(timerId);
-  }, [isInterviewActive]);
+  }, [isSessionActive]);
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -158,42 +195,43 @@ export default function InterviewSessionPage({ params }: PageProps) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-
-
-
-  const handleEndInterview = async () => {
+  const handleEndSession = async () => {
     if (isNavigatingRef.current) return;
     try {
       isNavigatingRef.current = true;
       if (vapiInstanceRef.current) {
         await vapiInstanceRef.current.stop();
       }
-      router.push(`/interview/${interviewId}/session/${sessionId}/review`);
+      router.push(`/entities/${entityId}/session/${sessionId}/review`);
     } catch (error) {
-      console.error('Error ending interview:', error);
-      router.push(`/interview/${interviewId}/session/${sessionId}/review`);
+      console.error('Error ending session:', error);
+      router.push(`/entities/${entityId}/session/${sessionId}/review`);
     }
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
-        <p className="mt-3 text-gray-600 text-xs">Loading interview data...</p>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+          <p className="mt-3 text-gray-600 text-xs">Loading entity session data...</p>
+        </div>
       </div>
-    </div>;
+    );
   }
 
-  if (!interview) {
-    return <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
-      <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
-        <h1 className="text-2xl font-bold text-red-600 mb-2">Interview Not Found</h1>
-        <p className="text-gray-600 text-xs mb-4">The interview {`you're`} looking for {`doesn't`} exist or has been removed.</p>
-        <Link href="/interview" className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md shadow-[3px_3px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all text-xs">
-          Back to Interviews
-        </Link>
+  if (!entity) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Entity Not Found</h1>
+          <p className="text-gray-600 text-xs mb-4">The entity you're looking for doesn't exist or has been removed.</p>
+          <Link href="/entities" className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md shadow-[3px_3px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all text-xs">
+            Back to Entities
+          </Link>
+        </div>
       </div>
-    </div>;
+    );
   }
 
   return (
@@ -204,17 +242,19 @@ export default function InterviewSessionPage({ params }: PageProps) {
           <div className="w-full lg:w-2/5">
             <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden">
               <div className="p-6 text-center">
-                <h2 className="text-xl font-bold mb-6">AI Interviewer</h2>
+                <h2 className="text-xl font-bold mb-6">AI {entity.type === 'interview' ? 'Interviewer' : 'Trainer'}</h2>
                 <div className="relative inline-block mb-6">
                   <div className="w-32 h-32 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-white text-3xl font-bold">AI</span>
                   </div>
-                  {isSpeaking && <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white py-1 px-3 rounded-full shadow-md">
-                    <div className="flex items-center text-xs text-gray-700">
-                      <div className="h-2 w-2 rounded-full bg-red-500 mr-1 animate-pulse"></div>
-                      Speaking
+                  {isSpeaking && (
+                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white py-1 px-3 rounded-full shadow-md">
+                      <div className="flex items-center text-xs text-gray-700">
+                        <div className="h-2 w-2 rounded-full bg-red-500 mr-1 animate-pulse"></div>
+                        Speaking
+                      </div>
                     </div>
-                  </div>}
+                  )}
                 </div>
                 <div className="flex items-end justify-center h-24 space-x-1 mb-6">
                   {audioLevels.map((level, i) => (
@@ -222,9 +262,15 @@ export default function InterviewSessionPage({ params }: PageProps) {
                   ))}
                 </div>
                 <div className="text-center mb-6">
-                  <div className="text-sm font-medium text-gray-500 mb-1">Interview Topic</div>
-                  <div className="text-lg font-medium text-gray-900">{interview.title}</div>
-                  <div className="text-sm text-gray-600 mt-1">{interview.domain} • {interview.seniority}</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">{entity.type === 'interview' ? 'Interview Topic' : 'Training Topic'}</div>
+                  <div className="text-lg font-medium text-gray-900">{entity.title}</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {entity.type === 'interview' && entity.interview
+                      ? `${entity.interview.domain} • ${entity.interview.seniority}`
+                      : entity.type === 'training' && entity.training
+                      ? `${entity.training.category} • ${entity.training.difficulty_level}`
+                      : ''}
+                  </div>
                 </div>
                 {!micReady ? (
                   <div className="flex justify-center">
@@ -237,8 +283,8 @@ export default function InterviewSessionPage({ params }: PageProps) {
                     </button>
                   </div>
                 ) : (
-                  <button onClick={handleEndInterview} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow transition-colors">
-                    End Interview
+                  <button onClick={handleEndSession} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md shadow transition-colors">
+                    End Session
                   </button>
                 )}
               </div>
@@ -247,7 +293,7 @@ export default function InterviewSessionPage({ params }: PageProps) {
           <div className="w-full lg:w-3/5">
             <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] rounded-lg overflow-hidden h-[600px] flex flex-col">
               <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900">Interview Transcript</h2>
+                <h2 className="text-lg font-medium text-gray-900">{entity.type === 'interview' ? 'Interview Transcript' : 'Training Transcript'}</h2>
                 <div className="flex items-center text-sm text-gray-600">
                   <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -263,15 +309,21 @@ export default function InterviewSessionPage({ params }: PageProps) {
                     const isAssistant = message.sender === 'assistant';
                     const lineColor = isAssistant ? 'border-blue-500' : 'border-green-500';
                     if (!isNewSpeaker) {
-                      return <p key={index} className={`border-l-2 ${lineColor} pl-3 text-gray-800 whitespace-pre-line leading-relaxed ml-5 mb-1`}>{message.text}</p>;
+                      return (
+                        <p key={index} className={`border-l-2 ${lineColor} pl-3 text-gray-800 whitespace-pre-line leading-relaxed ml-5 mb-1`}>
+                          {message.text}
+                        </p>
+                      );
                     }
-                    return <div key={index} className="mb-4">
-                      <div className="flex justify-between items-center text-sm mb-1">
-                        <span className={`font-medium ${isAssistant ? 'text-blue-700' : 'text-green-700'}`}>{isAssistant ? 'Interviewer' : 'You'}</span>
-                        <span className="text-xs text-gray-500">{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    return (
+                      <div key={index} className="mb-4">
+                        <div className="flex justify-between items-center text-sm mb-1">
+                          <span className={`font-medium ${isAssistant ? 'text-blue-700' : 'text-green-700'}`}>{isAssistant ? (entity.type === 'interview' ? 'Interviewer' : 'Trainer') : 'You'}</span>
+                          <span className="text-xs text-gray-500">{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className={`border-l-2 ${lineColor} pl-3 text-gray-800 whitespace-pre-line leading-relaxed`}>{message.text}</div>
                       </div>
-                      <div className={`border-l-2 ${lineColor} pl-3 text-gray-800 whitespace-pre-line leading-relaxed`}>{message.text}</div>
-                    </div>;
+                    );
                   })}
                   <div ref={transcriptEndRef} />
                 </div>
