@@ -11,7 +11,7 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,{
       cookieOptions: {
-        domain: ".mockingbird.com",
+        domain: ".localhost",
         secure: false,
         maxAge: 100000000,
         path: '/',

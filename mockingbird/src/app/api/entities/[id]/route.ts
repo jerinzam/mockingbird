@@ -21,18 +21,18 @@ type EntityWithDetails = Entity & {
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    // const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // if (!user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
-    const entityId = parseInt(params.id);
-    if (isNaN(entityId)) {
+    const { id: entityId } = await params;
+    if (isNaN(parseInt(entityId))) {
       return NextResponse.json(
         { success: false, error: 'Invalid entity ID' },
         { status: 400 }
@@ -43,7 +43,7 @@ export async function GET(
     const [entity] = await db
       .select()
       .from(entitiesTable)
-      .where(eq(entitiesTable.id, entityId));
+      .where(eq(entitiesTable.id, parseInt(entityId)));
 
     if (!entity) {
       return NextResponse.json(

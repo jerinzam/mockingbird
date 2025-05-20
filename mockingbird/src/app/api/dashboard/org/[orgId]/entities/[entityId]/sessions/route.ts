@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabaseServer';
 import { db } from '@/index';
-import { entitySessionsTable, organizationsTable } from '@/db/schema';
+import { entitiesTable, entitySessionsTable, organizationsTable, organizationMembersTable } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { getOrgContext } from '@/utils/orgContext';
@@ -26,14 +26,50 @@ export async function GET(
     if (!org) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
+
+        // Check if user is a member of the organization
+        const [membership] = await db
+        .select()
+        .from(organizationMembersTable)
+        .where(
+          and(
+            eq(organizationMembersTable.user_id, user.id),
+            eq(organizationMembersTable.organization_id, parseInt(orgId))
+          )
+        );
+  
+      if (!membership) {
+        return NextResponse.json(
+          { error: 'Not a member of this organization' },
+          { status: 403 }
+        );
+      }
+  
+      // Check if entity belongs to the organization
+      const [entity] = await db
+        .select()
+        .from(entitiesTable)
+        .where(
+          and(
+            eq(entitiesTable.id, parseInt(entityId)),
+            eq(entitiesTable.organization_id, orgId)
+          )
+        );
+  
+      if (!entity) {
+        return NextResponse.json(
+          { error: 'Entity not found or does not belong to this organization' },
+          { status: 404 }
+        );
+      }
   
     const sessions = await db
       .select()
       .from(entitySessionsTable)
       .where(
         and(
-          eq(entitySessionsTable.entity_id, parseInt(entityId)),
-          eq(entitySessionsTable.org_id, org.slug)
+          eq(entitySessionsTable.entity_id, parseInt(entityId))
+          
         )
       )
       .orderBy(entitySessionsTable.created_at);

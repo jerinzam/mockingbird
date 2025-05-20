@@ -76,7 +76,7 @@ const HomePage: NextPage = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link
-              href="/interview"
+              href="/entities"
               className="inline-block px-6 py-3 text-lg font-bold bg-yellow-300 border-4 border-black rounded-md 
                 shadow-[6px_6px_0_#000] 
                 hover:translate-x-[3px] hover:translate-y-[3px] 

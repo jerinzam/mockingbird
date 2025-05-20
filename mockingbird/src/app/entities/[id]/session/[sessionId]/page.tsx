@@ -1,27 +1,30 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
-// You may want to import types from your schema file if using TypeScript
-// import { Entity, InterviewEntity, TrainingEntity } from '@/db/schema';
-
 interface Entity {
-  id: number;
-  title: string;
-  description: string | null;
-  type: 'interview' | 'training';
-  status: string;
-  visibility: string;
-  vapi_agent_id?: string | null;
-  created_at: string;
-  // ...other fields as needed
-  interview?: InterviewEntity;
-  training?: TrainingEntity;
-}
+    id: number;
+    title: string;
+    description: string | null;
+    type: 'interview' | 'training';
+    status: string;
+    visibility: string;
+    vapi_agent_id: string | null;
+    vapi_agent?: {
+      id: number;
+      name: string;
+      vapi_agent_id: string;
+      api_key: string;
+    } | null;
+    created_at: string;
+    interview?: InterviewEntity;
+    training?: TrainingEntity;
+  }
+  
 
 interface InterviewEntity {
   domain: string;
@@ -52,12 +55,15 @@ interface VapiTranscriptMessage {
 }
 
 interface PageProps {
-  params: Promise<{ id: string; sessionId: string; org: string }>;
+  params: Promise<{ id: string; sessionId: string;}>;
 }
 
 export default function EntitySessionPage({ params }: PageProps) {
   const router = useRouter();
   const [entity, setEntity] = useState<Entity | null>(null);
+  const [entityId, setEntityId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSessionActive, setIsSessionActive] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -69,53 +75,75 @@ export default function EntitySessionPage({ params }: PageProps) {
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
   const [micReady, setMicReady] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
-  const [entityId, setEntityId] = useState<string>('');
-  const [org, setOrg] = useState<string>('');
 
+//   const { entityId, sessionId, org } = use(params);
   useEffect(() => {
     params.then(p => setSessionId(p.sessionId));
     params.then(p => setEntityId(p.id));
-    params.then(p => setOrg(p.org));
+
   }, [params]);
 
   useEffect(() => {
-    if (!sessionId || !entityId) return;
+    
+    if (!entityId || !sessionId) return;
+  
     const fetchEntitySession = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/organizations/${org}/entities/${entityId}/sessions/${sessionId}`);
+        const response = await fetch(`/api/entities/${entityId}/sessions/${sessionId}`);
         if (!response.ok) throw new Error('Failed to fetch session');
         const data = await response.json();
-        setEntity(data.entity);
+        setEntity(data.data.entity);
       } catch (error) {
         console.error('Failed to fetch session:', error);
       } finally {
         setIsLoading(false);
       }
     };
+  
     fetchEntitySession();
-  }, [sessionId, entityId, org]);
+  }, [ entityId, sessionId]);
 
   useEffect(() => {
-    if (vapiInstanceRef.current || !entity || !sessionId) return;
+    if (!entity || !sessionId) return;
+  
+    // FIX: Always stop any previous Vapi instance before initializing a new one
+    if (vapiInstanceRef.current) {
+      vapiInstanceRef.current.stop();
+      vapiInstanceRef.current = null;
+    }
+  
     try {
-      vapiInstanceRef.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY || '');
+      // Check if entity has a Vapi agent configured
+      if (!entity.vapi_agent) {
+        throw new Error('No Vapi agent configured for this entity');
+      }
+  
+      // Initialize Vapi with the agent's API key
+      vapiInstanceRef.current = new Vapi(entity.vapi_agent.api_key);
+      
+      // Set up event handlers
       vapiInstanceRef.current.on('message', (message: VapiTranscriptMessage) => {
         if (message.type === 'transcript' && message.transcriptType === 'final') {
-          setTranscript((prev) => [...prev, {
-            sender: message.role,
-            text: message.transcript,
-            timestamp: new Date(),
-          }]);
+          setTranscript((prev) => [
+            ...prev,
+            {
+              sender: message.role,
+              text: message.transcript,
+              timestamp: new Date(),
+            },
+          ]);
         }
       });
+  
       vapiInstanceRef.current.on('volume-level', (level) => {
         setAudioLevels(Array(20).fill(level));
       });
+  
       vapiInstanceRef.current.on('speech-start', () => setIsSpeaking(true));
       vapiInstanceRef.current.on('speech-end', () => setIsSpeaking(false));
       vapiInstanceRef.current.on('call-start', () => setMicReady(true));
+  
       vapiInstanceRef.current.on('call-end', () => {
         if (isNavigatingRef.current) return;
         setIsSessionActive(false);
@@ -126,11 +154,12 @@ export default function EntitySessionPage({ params }: PageProps) {
           }
         }, 100);
       });
-
+  
       const assistantOverrides = {
         metadata: {
           entityId: entity.id,
-          session_id: sessionId
+          session_id: sessionId,
+          vapi_agent_name: entity.vapi_agent.name,
         },
         variableValues: {
           entity_title: entity.title,
@@ -140,7 +169,7 @@ export default function EntitySessionPage({ params }: PageProps) {
                 interview_domain: entity.interview.domain,
                 interview_duration: entity.interview.duration,
                 interview_seniority: entity.interview.seniority,
-                interview_keyskills: entity.interview.key_skills
+                interview_keyskills: entity.interview.key_skills,
               }
             : {}),
           ...(entity.type === 'training' && entity.training
@@ -149,23 +178,26 @@ export default function EntitySessionPage({ params }: PageProps) {
                 training_difficulty: entity.training.difficulty_level,
                 training_objectives: entity.training.learning_objectives,
                 training_prerequisites: entity.training.prerequisites,
-                training_estimated_time: entity.training.estimated_completion_time
+                training_estimated_time: entity.training.estimated_completion_time,
               }
-            : {})
-        }
+            : {}),
+        },
       };
-      vapiInstanceRef.current.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, assistantOverrides);
-
+  
+      // Start the Vapi session with the agent's assistant ID
+      vapiInstanceRef.current.start(entity.vapi_agent.vapi_agent_id, assistantOverrides);
     } catch (error) {
       console.error('Failed to initialize Vapi:', error);
+      // You might want to show an error message to the user here
     }
+  
     return () => {
       if (vapiInstanceRef.current) {
         vapiInstanceRef.current.stop();
         vapiInstanceRef.current = null;
       }
     };
-  }, [entity, sessionId, router, entityId, org]);
+  }, [entity, sessionId, router, entityId]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
@@ -182,7 +214,9 @@ export default function EntitySessionPage({ params }: PageProps) {
   useEffect(() => {
     let animationId: number;
     const animate = () => {
-      setAudioLevels((prev) => prev.map(() => (isSpeaking ? Math.random() * 0.8 : isListening ? Math.random() * 0.5 : 0)));
+      setAudioLevels((prev) =>
+        prev.map(() => (isSpeaking ? Math.random() * 0.8 : isListening ? Math.random() * 0.5 : 0))
+      );
       animationId = requestAnimationFrame(animate);
     };
     animationId = requestAnimationFrame(animate);
@@ -199,15 +233,20 @@ export default function EntitySessionPage({ params }: PageProps) {
     if (isNavigatingRef.current) return;
     try {
       isNavigatingRef.current = true;
+
+      // FIX: Stop and nullify Vapi instance on manual session end
       if (vapiInstanceRef.current) {
         await vapiInstanceRef.current.stop();
+        vapiInstanceRef.current = null;
       }
+
       router.push(`/entities/${entityId}/session/${sessionId}/review`);
     } catch (error) {
       console.error('Error ending session:', error);
       router.push(`/entities/${entityId}/session/${sessionId}/review`);
     }
   };
+
 
   if (isLoading) {
     return (
@@ -236,7 +275,7 @@ export default function EntitySessionPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#f4f4f4] text-[#222222] font-mono">
-      <MockingbirdHeader />
+      
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-2/5">
