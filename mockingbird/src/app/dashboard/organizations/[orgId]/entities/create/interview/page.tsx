@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
@@ -39,13 +39,21 @@ interface InterviewForm {
   duration: string;
   key_skills: string[];
   isPrivate: boolean; // Added new field
+  vapi_agent_id: number;
 }
 
+interface VapiAgent {
+  id: number;
+  name: string;
+  vapi_agent_id: string;
+  api_key: string;
+}
 export default function CreateInterviewPage() {
   const router = useRouter();
   const params = useParams();
   const orgId = params.orgId as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [agents, setAgents] = useState<VapiAgent[]>([]);
   const [formData, setFormData] = useState<InterviewForm>({
     title: '',
     description: '',
@@ -53,9 +61,29 @@ export default function CreateInterviewPage() {
     seniority: 'Mid-Level',
     duration: '',
     key_skills: [],
-    isPrivate: false // Default to public
+    isPrivate: false, // Default to public
+    vapi_agent_id: 0
   });
 
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch(`/api/dashboard/org/${orgId}/vapi-agents`);
+        const data = await response.json();
+        if (data.success) {
+          setAgents(data.agents);
+          // If there are agents, set the first one as default
+          if (data.agents.length > 0) {
+            setFormData(prev => ({ ...prev, vapi_agent_id: data.agents[0].id }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching VAPI agents:', error);
+      }
+    };
+    fetchAgents();
+  }, [orgId]);
+  
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -215,6 +243,27 @@ export default function CreateInterviewPage() {
                     {formData.isPrivate ? 'Private' : 'Public'}
                   </div>
                 </label>
+              </div>
+
+               {/* VAPI Agent Selection */}
+               <div>
+                <label htmlFor="vapi_agent_id" className="block text-sm font-medium text-gray-700">
+                  VAPI Agent
+                </label>
+                <select
+                  id="vapi_agent_id"
+                  value={formData.vapi_agent_id}
+                  onChange={(e) => setFormData({ ...formData, vapi_agent_id: parseInt(e.target.value) })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a VAPI Agent</option>
+                  {agents.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Submit Button */}
