@@ -5,19 +5,22 @@ import {
   entitiesTable, 
   interviewEntitiesTable, 
   trainingEntitiesTable,
-  entityTypes ,
+  entityTypes,
   type Entity,
   type InterviewEntity,
-  type TrainingEntity
+  type TrainingEntity,
+  invites
 } from '@/db/schema';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabaseServer';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 type EntityWithDetails = Entity & {
     interview?: InterviewEntity;
     training?: TrainingEntity;
-  };
+};
+
+// src/app/api/entities/[id]/route.ts
 
 export async function GET(
   req: Request,
@@ -25,13 +28,10 @@ export async function GET(
 ) {
   try {
     const supabase = await createClient();
-    // const { data: { user } } = await supabase.auth.getUser();
-
-    // if (!user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
     const { id: entityId } = await params;
+    const url = new URL(req.url);
+    const token = url.searchParams.get('token');
+
     if (isNaN(parseInt(entityId))) {
       return NextResponse.json(
         { success: false, error: 'Invalid entity ID' },
@@ -52,6 +52,21 @@ export async function GET(
       );
     }
 
+    // Check token validity for private entities
+    let hasValidToken = false;
+    if (entity.visibility === 'private' && token) {
+      const [validToken] = await db
+        .select()
+        .from(invites)
+        .where(
+          and(
+            eq(invites.entity_id, parseInt(entityId)),
+            eq(invites.invite_code, token)
+          )
+        );
+      hasValidToken = !!validToken;
+    }
+
     // Get type-specific data
     let entityWithDetails = { ...entity };
     if (entity.type === 'interview' as typeof entityTypes[number]) {
@@ -59,7 +74,7 @@ export async function GET(
         .select()
         .from(interviewEntitiesTable)
         .where(eq(interviewEntitiesTable.entity_id, entity.id));
-      entityWithDetails =  { ...entity, interview } as EntityWithDetails;
+      entityWithDetails = { ...entity, interview } as EntityWithDetails;
     }
     if (entity.type === 'training' as typeof entityTypes[number]) {
       const [training] = await db
@@ -71,7 +86,8 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: entityWithDetails
+      data: entityWithDetails,
+      hasValidToken
     });
 
   } catch (err) {

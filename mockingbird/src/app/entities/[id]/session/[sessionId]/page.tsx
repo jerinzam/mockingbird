@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Vapi from '@vapi-ai/web';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
@@ -60,10 +60,10 @@ interface PageProps {
 
 export default function EntitySessionPage({ params }: PageProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [entity, setEntity] = useState<Entity | null>(null);
   const [entityId, setEntityId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
   const [isLoading, setIsLoading] = useState(true);
   const [isSessionActive, setIsSessionActive] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -71,57 +71,75 @@ export default function EntitySessionPage({ params }: PageProps) {
   const [isListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioLevels, setAudioLevels] = useState<number[]>(Array(20).fill(0));
+  const [hasValidToken, setHasValidToken] = useState(false);
   const vapiInstanceRef = useRef<Vapi | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const isNavigatingRef = useRef(false);
   const [micReady, setMicReady] = useState(false);
+  const token = searchParams.get('token');
 
-//   const { entityId, sessionId, org } = use(params);
   useEffect(() => {
     params.then(p => setSessionId(p.sessionId));
     params.then(p => setEntityId(p.id));
-
   }, [params]);
 
   useEffect(() => {
     
     if (!entityId || !sessionId) return;
-  
+    
     const fetchEntitySession = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/entities/${entityId}/sessions/${sessionId}`);
-        if (!response.ok) throw new Error('Failed to fetch session');
+        const token = searchParams.get('token');
+        const response = await fetch(`/api/entities/${entityId}/sessions/${sessionId}?token=${token || ''}`);
+        
+        if (!response.ok) {
+          if (response.status === 403) {
+            // Redirect to entity page if access is denied
+            router.push(`/entities/${entityId}`);
+            return;
+          }
+          throw new Error('Failed to fetch session');
+        }
+
         const data = await response.json();
         setEntity(data.data.entity);
+        setHasValidToken(data.hasValidToken);
+
+        // If entity is private and token is invalid, redirect to entity page
+        if (data.data.entity.visibility === 'private' && !data.hasValidToken) {
+          router.push(`/entities/${entityId}`);
+          return;
+        }
       } catch (error) {
         console.error('Failed to fetch session:', error);
+        router.push(`/entities/${entityId}`);
       } finally {
         setIsLoading(false);
       }
     };
-  
+
     fetchEntitySession();
-  }, [ entityId, sessionId]);
+  }, [entityId, sessionId, router, searchParams]);
 
   useEffect(() => {
-    if (!entity || !sessionId) return;
-  
+    if (!entity || !sessionId || !hasValidToken) return;
+
     // FIX: Always stop any previous Vapi instance before initializing a new one
     if (vapiInstanceRef.current) {
       vapiInstanceRef.current.stop();
       vapiInstanceRef.current = null;
     }
-  
+
     try {
       // Check if entity has a Vapi agent configured
       if (!entity.vapi_agent) {
         throw new Error('No Vapi agent configured for this entity');
       }
-  
+
       // Initialize Vapi with the agent's API key
       vapiInstanceRef.current = new Vapi(entity.vapi_agent.api_key);
-      
+            
       // Set up event handlers
       vapiInstanceRef.current.on('message', (message: VapiTranscriptMessage) => {
         if (message.type === 'transcript' && message.transcriptType === 'final') {
@@ -143,17 +161,20 @@ export default function EntitySessionPage({ params }: PageProps) {
       vapiInstanceRef.current.on('speech-start', () => setIsSpeaking(true));
       vapiInstanceRef.current.on('speech-end', () => setIsSpeaking(false));
       vapiInstanceRef.current.on('call-start', () => setMicReady(true));
-  
+      
       vapiInstanceRef.current.on('call-end', () => {
         if (isNavigatingRef.current) return;
         setIsSessionActive(false);
         setTimeout(() => {
-          if (!isNavigatingRef.current) {
-            isNavigatingRef.current = true;
-            router.push(`/entities/${entityId}/session/${sessionId}/review`);
-          }
+            if (!isNavigatingRef.current) {
+                isNavigatingRef.current = true;
+                // Add token to review URL if it exists
+                const reviewUrl = `/entities/${entityId}/session/${sessionId}/review`;
+                const urlWithToken = token ? `${reviewUrl}?token=${token}` : reviewUrl;
+                router.push(urlWithToken);
+            }
         }, 100);
-      });
+    });
   
       const assistantOverrides = {
         metadata: {
@@ -232,20 +253,27 @@ export default function EntitySessionPage({ params }: PageProps) {
   const handleEndSession = async () => {
     if (isNavigatingRef.current) return;
     try {
-      isNavigatingRef.current = true;
+        isNavigatingRef.current = true;
 
-      // FIX: Stop and nullify Vapi instance on manual session end
-      if (vapiInstanceRef.current) {
-        await vapiInstanceRef.current.stop();
-        vapiInstanceRef.current = null;
-      }
+        // FIX: Stop and nullify Vapi instance on manual session end
+        if (vapiInstanceRef.current) {
+            await vapiInstanceRef.current.stop();
+            vapiInstanceRef.current = null;
+        }
 
-      router.push(`/entities/${entityId}/session/${sessionId}/review`);
+        // Add token to review URL if it exists
+        const reviewUrl = `/entities/${entityId}/session/${sessionId}/review`;
+        const urlWithToken = token ? `${reviewUrl}?token=${token}` : reviewUrl;
+        
+        router.push(urlWithToken);
     } catch (error) {
-      console.error('Error ending session:', error);
-      router.push(`/entities/${entityId}/session/${sessionId}/review`);
+        console.error('Error ending session:', error);
+        // Still include token in redirect even if there's an error
+        const reviewUrl = `/entities/${entityId}/session/${sessionId}/review`;
+        const urlWithToken = token ? `${reviewUrl}?token=${token}` : reviewUrl;
+        router.push(urlWithToken);
     }
-  };
+};
 
 
   if (isLoading) {
@@ -254,6 +282,20 @@ export default function EntitySessionPage({ params }: PageProps) {
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
           <p className="mt-3 text-gray-600 text-xs">Loading entity session data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!entity || (entity.visibility === 'private' && !hasValidToken)) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h1>
+          <p className="text-gray-600 text-xs mb-4">You don't have permission to access this session.</p>
+          <Link href={`/entities/${entityId}`} className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md shadow-[3px_3px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all text-xs">
+            Back to Entity
+          </Link>
         </div>
       </div>
     );

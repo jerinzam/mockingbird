@@ -1,5 +1,5 @@
 import { db } from '@/index';
-import { entitySessionsTable, entitiesTable, interviewEntitiesTable, trainingEntitiesTable, vapiAgentsTable } from '@/db/schema';
+import { entitySessionsTable, entitiesTable, interviewEntitiesTable, trainingEntitiesTable, vapiAgentsTable, invites } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -87,6 +87,25 @@ export async function GET(
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
     }
 
+    // Check if entity is private and validate token if provided
+    let hasValidToken = true;
+    if (sessionData.entity.visibility === 'private') {
+      if (!token) {
+        hasValidToken = false;
+      } else {
+        const [validToken] = await db
+          .select()
+          .from(invites)
+          .where(
+            and(
+              eq(invites.entity_id, parseInt(entityId)),
+              eq(invites.invite_code, token)
+            )
+          );
+        hasValidToken = !!validToken;
+      }
+    }
+
     // Then get the type-specific data
     if (sessionData.entity.type === 'interview') {
       const [interviewData] = await db
@@ -117,7 +136,8 @@ export async function GET(
           status: sessionData.status,
           metadata: sessionData.metadata
         }
-      }
+      },
+      hasValidToken
     });
   } catch (error) {
     console.error('[GET_SESSION_ERROR]', error);

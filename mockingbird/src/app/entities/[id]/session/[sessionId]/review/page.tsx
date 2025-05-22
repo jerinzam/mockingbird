@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 
 interface PerformanceMetric {
@@ -22,6 +22,11 @@ interface EntityReview {
   summary: string;
 }
 
+interface Entity {
+  id: number;
+  visibility: string;
+}
+
 const RETRY_CONFIG = {
   maxRetries: 10,
   baseDelay: 2000,
@@ -30,18 +35,21 @@ const RETRY_CONFIG = {
 };
 
 const fetchEntityScore = async (
-  entityId:string,
+  entityId: string,
   sessionId: string,
+  token: string | null,
   signal: AbortSignal
 ) => {
-    
-  const res = await fetch(`/api/entities/${entityId}/sessions/${sessionId}/review`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal,
-    }
-  );
+  const url = new URL(`/api/entities/${entityId}/sessions/${sessionId}/review`, window.location.origin);
+  if (token) {
+    url.searchParams.set('token', token);
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    signal,
+  });
 
   if (!res.ok) {
     const errorData = await res.json();
@@ -49,18 +57,28 @@ const fetchEntityScore = async (
   }
 
   const data = await res.json();
-  if (!data.review?.review) throw new Error('No review available');
-  return data.review.review;
+  console.log(data);
+  // Fix: Access the correct nested structure
+  if (!data.data?.review) throw new Error('No review available');
+  return {
+    review: data.data.review.review,  // Changed from data.review to data.data.review
+    entity: data.data.entity,
+    hasValidToken: data.hasValidToken
+  };
 };
 
 export default function EntityReview() {
   const [review, setReview] = useState<EntityReview | null>(null);
+  const [entity, setEntity] = useState<Entity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [hasValidToken, setHasValidToken] = useState(false);
   const params = useParams();
-  const { id:entityId, sessionId } = params;
+  const searchParams = useSearchParams();
+  const { id: entityId, sessionId } = params;
+  const token = searchParams.get('token');
   const abortControllerRef = useRef<AbortController | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
@@ -99,14 +117,17 @@ export default function EntityReview() {
       const result = await fetchEntityScore(
         entityId as string,
         sessionId as string,
+        token,
         abortControllerRef.current.signal
       );
-
+      console.log(result);
       if (!isMountedRef.current) return;
 
-      if (result) {
+      if (result.review) {
         console.log('Successfully fetched entity review');
-        setReview(result);
+        setReview(result.review);
+        setEntity(result.entity);
+        setHasValidToken(result.hasValidToken);
         setProgress(100);
         setLoading(false);
         return;
@@ -142,13 +163,11 @@ export default function EntityReview() {
         setLoading(false);
       }
     }
-    // remove retryCount dependency to avoid remounting effect
-  }, [entityId, sessionId]);
+  }, [entityId, sessionId, token, attemptNumber, retryCount]);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    // Reset state only on first mount (not on retry)
     if (retryCount === 0) {
       setLoading(true);
       setError(null);
@@ -221,7 +240,19 @@ export default function EntityReview() {
     );
   }
 
-  if (!review) return null;
+  if (!review || !entity || (entity.visibility === 'private' && !hasValidToken)) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4] text-[#222222] font-mono">
+        <div className="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-2">Access Denied</h1>
+          <p className="text-gray-600 text-xs mb-4">You don't have permission to access this review.</p>
+          <Link href={`/entities/${entityId}`} className="inline-block bg-yellow-300 border-2 border-black px-3 py-1.5 rounded-md shadow-[3px_3px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all text-xs">
+            Back to Entity
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const performanceMetrics: PerformanceMetric[] = [
     { value: review.communication, label: 'Communication', description: 'Clarity, articulation, and listening skills' },

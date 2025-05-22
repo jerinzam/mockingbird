@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/index';
-import { entitySessionsTable } from '@/db/schema';
+import { entitySessionsTable, entitiesTable, invites } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function GET(
@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { id: entityId, sessionId } = await params;
+    const token = request.nextUrl.searchParams.get('token');
 
     // Validate params
     if (!sessionId || !entityId) {
@@ -17,10 +18,11 @@ export async function GET(
       }, { status: 400 });
     }
 
-    // Get the session to find its org_id
-    const [session] = await db
+    // Get the session and entity data
+    const [sessionData] = await db
       .select({
-        org_id: entitySessionsTable.org_id
+        session: entitySessionsTable,
+        entity: entitiesTable
       })
       .from(entitySessionsTable)
       .where(
@@ -28,12 +30,38 @@ export async function GET(
           eq(entitySessionsTable.session_uuid, sessionId),
           eq(entitySessionsTable.entity_id, parseInt(entityId, 10))
         )
-      );
+      )
+      .leftJoin(entitiesTable, eq(entitySessionsTable.entity_id, entitiesTable.id));
 
-    if (!session) {
+    if (!sessionData) {
       return NextResponse.json({ 
         error: 'Session not found' 
       }, { status: 404 });
+    }
+
+    if (!sessionData.entity) {
+      return NextResponse.json({ 
+        error: 'Entity not found' 
+      }, { status: 404 });
+    }
+
+    // Check if entity is private and validate token if provided
+    let hasValidToken = true;
+    if (sessionData.entity.visibility === 'private') {
+      if (!token) {
+        hasValidToken = false;
+      } else {
+        const [validToken] = await db
+          .select()
+          .from(invites)
+          .where(
+            and(
+              eq(invites.entity_id, parseInt(entityId)),
+              eq(invites.invite_code, token)
+            )
+          );
+        hasValidToken = !!validToken;
+      }
     }
 
     // Fetch from Supabase Edge Function
@@ -47,7 +75,7 @@ export async function GET(
         body: JSON.stringify({ 
           sessionId,
           entityId,
-          orgId: session.org_id
+          orgId: sessionData.session.org_id
         })
       }
     );
@@ -62,8 +90,16 @@ export async function GET(
     }
 
     // Parse and return the response
-    const data = await supabaseResponse.json();
-    return NextResponse.json({ review: data });
+    const reviewData = await supabaseResponse.json();
+    return NextResponse.json({ 
+      success: true,
+      data: {
+        review: reviewData,
+        entity: sessionData.entity,
+        session: sessionData.session
+      },
+      hasValidToken
+    });
 
   } catch (error) {
     console.error('API Route Error:', error);
