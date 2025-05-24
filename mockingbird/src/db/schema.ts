@@ -219,6 +219,7 @@ export const organizationsTable = pgTable('organizations', {
   website: text('website'),
   is_active: boolean('is_active').default(true),
   settings: jsonb('settings').default({}),
+  feature_flags: jsonb('feature_flags').default({}),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   type: varchar('type', { length: 32, enum: organizationTypes }).notNull().default('personal'),

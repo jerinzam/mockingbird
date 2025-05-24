@@ -121,14 +121,14 @@ export function MockingbirdHeader() {
           </Link>
 
           {/* Org Settings Button */}
-          {session && org && (
+          {/* {session && org && (
             <Link
               href={`/dashboard/organizations/${org.id}/settings`}
               className="px-3 py-1 border border-black text-[10px] font-bold rounded bg-blue-200 hover:bg-blue-300 transition-all"
             >
               Org Settings
             </Link>
-          )}
+          )} */}
 
           {/* User Section */}
           {session ? (

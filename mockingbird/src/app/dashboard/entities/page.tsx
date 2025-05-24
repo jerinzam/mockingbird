@@ -1,11 +1,13 @@
 // src/app/dashboard/entities/page.tsx
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 import { Entity } from '@/db/schema';
+import { useOrgContext } from '@/context/orgContext';
+import { FEATURE_FLAGS } from '@/config/featureFlags';
+import { Tooltip } from '@/components/ui/tooltip'; // You'll need to create this component
 
 type EntityWithDetails = Entity & {
   interview?: any;
@@ -19,6 +21,7 @@ export default function EntitiesPage() {
   const [entities, setEntities] = useState<EntityWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<'all' | 'interview' | 'training'>('all');
+  const { isFeatureEnabled } = useOrgContext();
 
   useEffect(() => {
     fetchEntities();
@@ -44,6 +47,18 @@ export default function EntitiesPage() {
     }
   };
 
+  const handleCreateClick = () => {
+    if (!isFeatureEnabled(FEATURE_FLAGS.interview_creator.key)) {
+      return; // Don't navigate if feature is disabled
+    }
+    router.push('/dashboard/entities/create');
+  };
+
+  const isCreateButtonDisabled = !isFeatureEnabled(FEATURE_FLAGS.interview_creator.key);
+  const createButtonTooltip = isCreateButtonDisabled 
+    ? FEATURE_FLAGS.interview_creator.disabledMessage 
+    : 'Create a new entity';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <MockingbirdHeader />
@@ -53,12 +68,19 @@ export default function EntitiesPage() {
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Entities</h1>
-            <button
-              onClick={() => router.push('/dashboard/entities/create')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Create New
-            </button>
+            <Tooltip content={createButtonTooltip}>
+              <button
+                onClick={handleCreateClick}
+                disabled={isCreateButtonDisabled}
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white 
+                  ${isCreateButtonDisabled 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+              >
+                Create New
+              </button>
+            </Tooltip>
           </div>
 
           {/* Filters */}

@@ -61,7 +61,7 @@ const fetchEntityScore = async (
   // Fix: Access the correct nested structure
   if (!data.data?.review) throw new Error('No review available');
   return {
-    review: data.data.review.review,  // Changed from data.review to data.data.review
+    review: data.data.review.review,  
     entity: data.data.entity,
     hasValidToken: data.hasValidToken
   };

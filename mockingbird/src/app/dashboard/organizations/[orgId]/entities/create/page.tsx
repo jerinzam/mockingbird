@@ -4,6 +4,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
+import { FeatureFlagRoute } from '@/components/featureFlagRoute';
 
 export default function CreateEntityPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function CreateEntityPage() {
   };
 
   return (
+    <FeatureFlagRoute requiredFeature="interview_creator">
     <div className="min-h-screen bg-gray-50">
       <MockingbirdHeader />
       
@@ -56,5 +58,6 @@ export default function CreateEntityPage() {
         </div>
       </main>
     </div>
+    </FeatureFlagRoute>
   );
 }

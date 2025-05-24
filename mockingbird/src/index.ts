@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js'
-config({ path: ".env.local" });
+// config({ path: ".env.local" });
 // import { interviewTable } from './db/schema';
 // import postgres from 'postgres';
 

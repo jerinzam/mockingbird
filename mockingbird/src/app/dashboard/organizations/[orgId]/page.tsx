@@ -6,12 +6,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { MockingbirdHeader } from '@/components/mockingBirdHeader';
 import Link from 'next/link';
+import { FEATURE_FLAGS } from '@/config/featureFlags';
+import { Tooltip } from '@/components/ui/tooltip';
+import { useOrgContext } from '@/context/orgContext';
 
 export default function DashboardPage() {
   const { session } = useSession();
   const router = useRouter();
   const params = useParams();
   const orgId = params.orgId as string;
+  const { isFeatureEnabled } = useOrgContext();
 
   useEffect(() => {
     if (!session) {
@@ -20,6 +24,11 @@ export default function DashboardPage() {
   }, [session, router]);
 
   if (!session) return null;
+
+  const isInterviewCreatorEnabled = isFeatureEnabled(FEATURE_FLAGS.interview_creator.key);
+  const interviewCreatorTooltip = isInterviewCreatorEnabled 
+    ? 'Create a new interview template'
+    : FEATURE_FLAGS.interview_creator.disabledMessage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,13 +50,27 @@ export default function DashboardPage() {
           </Link>
 
           {/* Create Interview Card */}
-          <Link 
-            href={`/dashboard/organizations/${orgId}/entities/create`}
-            className="bg-white p-6 rounded-lg border-2 border-black shadow-[4px_4px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all"
-          >
-            <h2 className="text-xl font-bold mb-2">Create Interview</h2>
-            <p className="text-gray-600 text-sm">Create a new interview template</p>
-          </Link>
+          <Tooltip content={interviewCreatorTooltip}>
+            <div className={`
+              bg-white p-6 rounded-lg border-2 border-black 
+              ${isInterviewCreatorEnabled 
+                ? 'shadow-[4px_4px_0_#000] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all cursor-pointer' 
+                : 'shadow-[2px_2px_0_#000] opacity-50 cursor-not-allowed'
+              }
+            `}>
+              {isInterviewCreatorEnabled ? (
+                <Link href={`/dashboard/organizations/${orgId}/entities/create`}>
+                  <h2 className="text-xl font-bold mb-2">Create Interview</h2>
+                  <p className="text-gray-600 text-sm">Create a new interview template</p>
+                </Link>
+              ) : (
+                <div>
+                  <h2 className="text-xl font-bold mb-2">Create Interview</h2>
+                  <p className="text-gray-600 text-sm">Create a new interview template</p>
+                </div>
+              )}
+            </div>
+          </Tooltip>
 
           {/* Analytics Card (placeholder for future feature) */}
           <div className="bg-white p-6 rounded-lg border-2 border-black shadow-[4px_4px_0_#000]">
