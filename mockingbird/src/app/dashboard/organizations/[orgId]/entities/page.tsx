@@ -51,7 +51,7 @@ export default function EntitiesPage() {
     if (!isFeatureEnabled(FEATURE_FLAGS.interview_creator.key)) {
       return; // Don't navigate if feature is disabled
     }
-    router.push('/dashboard/entities/create');
+    router.push(`/dashboard/organizations/${orgId}/entities/create`);
   };
 
   const isCreateButtonDisabled = !isFeatureEnabled(FEATURE_FLAGS.interview_creator.key);
@@ -106,7 +106,7 @@ export default function EntitiesPage() {
               >
                 Interviews
               </button>
-              <button
+              {/* <button
                 onClick={() => setSelectedType('training')}
                 className={`px-4 py-2 rounded-md ${
                   selectedType === 'training'
@@ -115,7 +115,7 @@ export default function EntitiesPage() {
                 }`}
               >
                 Trainings
-              </button>
+              </button> */}
             </div>
           </div>
 

@@ -22,24 +22,17 @@ const PROTECTED_ROUTES = {
 
 export async function checkFeatureFlag(req: NextRequest, orgId: string, featureFlag: string) {
     try {
-      const [org] = await db
-        .select()
-        .from(organizationsTable)
-        .where(eq(organizationsTable.id, parseInt(orgId)));
-  
-      if (!org) {
-        console.log('Organization not found:', orgId);
+      const response = await fetch(
+        `${req.nextUrl.origin}/api/feature-flags/check?orgId=${orgId}&featureFlag=${featureFlag}`,
+        { headers: { 'x-middleware-skip': '1' } }
+      );
+      
+      if (!response.ok) {
         return false;
       }
   
-      console.log('Feature flags from DB:', org.feature_flags);
-      console.log('Checking flag:', featureFlag);
-      
-      const isEnabled = (org.feature_flags as FeatureFlags)?.[featureFlag]?.is_enabled ?? 
-          FEATURE_FLAGS[featureFlag as keyof typeof FEATURE_FLAGS].defaultEnabled;
-      
-      console.log('Is feature enabled:', isEnabled);
-      return isEnabled;
+      const data = await response.json();
+      return data.enabled;
     } catch (error) {
       console.error('Feature flag check error:', error);
       return false;

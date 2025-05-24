@@ -42,7 +42,7 @@ export default function CreateEntityPage() {
               </button>
 
               {/* Training Card */}
-              <button
+              {/* <button
                 onClick={() => handleTypeSelect('training')}
                 className="relative block p-6 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all"
               >
@@ -52,7 +52,7 @@ export default function CreateEntityPage() {
                     Create an interactive training session
                   </p>
                 </div>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
